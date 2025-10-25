@@ -9,12 +9,18 @@ class WikiEngine {
         this.pages = [];
         this.structure = {};
         this.lastScan = null;
+        this.isInitialized = false;
         
         console.log('WikiEngine ініціалізовано для репозиторію:', this.repoOwner + '/' + this.repoName);
     }
 
     async init() {
         console.log('Початок ініціалізації WikiEngine...');
+        
+        if (this.isInitialized) {
+            console.log('WikiEngine вже ініціалізовано');
+            return;
+        }
         
         // Лічильник відвідувачів
         this.updateVisitCounter();
@@ -25,16 +31,16 @@ class WikiEngine {
             this.buildNavigation();
             this.updateQuickStats();
             this.updateLastScanTime();
-        } else {
-            console.log('Кеш не знайдено, починаємо сканування...');
         }
 
-        // Автоматичне сканування репозиторію
+        // АВТОМАТИЧНЕ СКАНУВАННЯ ПРИ ЗАВАНТАЖЕННІ
+        console.log('Запуск автоматичного сканування...');
         await this.scanRepository();
 
         // Обробка початкового URL
         this.handleInitialUrl();
         
+        this.isInitialized = true;
         console.log('Ініціалізація завершена. Доступно сторінок:', this.pages.length);
     }
 
@@ -59,11 +65,41 @@ class WikiEngine {
             console.log('Отримано дані з GitHub:', pagesData);
             
             if (!pagesData || pagesData.length === 0) {
-                throw new Error('Папка pages порожня або не існує');
+                console.log('Папка pages порожня, спроба отримати кореневі файли...');
+                // Спробуємо отримати файли з кореня pages
+                const rootFiles = await this.fetchGitHubContents('');
+                const mdFiles = rootFiles.filter(item => 
+                    item.type === 'file' && item.name.endsWith('.md') && item.name !== 'README.md'
+                );
+                
+                if (mdFiles.length > 0) {
+                    console.log('Знайдено .md файли в корені:', mdFiles);
+                    this.pages = mdFiles.map(file => ({
+                        title: file.name.replace('.md', ''),
+                        path: file.name.replace('.md', ''),
+                        url: file.download_url,
+                        size: file.size
+                    }));
+                    
+                    this.structure = {
+                        name: 'pages',
+                        path: 'pages',
+                        type: 'folder',
+                        children: mdFiles.map(file => ({
+                            name: file.name.replace('.md', ''),
+                            path: file.path,
+                            type: 'file',
+                            url: file.download_url,
+                            size: file.size
+                        }))
+                    };
+                } else {
+                    throw new Error('Не знайдено жодного .md файлу в репозиторії');
+                }
+            } else {
+                this.structure = await this.buildStructure(pagesData, 'pages');
+                this.pages = this.extractPagesFromStructure(this.structure);
             }
-
-            this.structure = await this.buildStructure(pagesData, 'pages');
-            this.pages = this.extractPagesFromStructure(this.structure);
             
             console.log('Структура побудована. Знайдено сторінок:', this.pages.length);
             console.log('Сторінки:', this.pages);
@@ -97,12 +133,22 @@ class WikiEngine {
             console.log(`📊 Статус відповіді: ${response.status} ${response.statusText}`);
             
             if (!response.ok) {
+                if (response.status === 403) {
+                    throw new Error('Доступ заборонено. Можливо, перевищено ліміт запитів до GitHub API');
+                }
                 throw new Error(`HTTP ${response.status}: ${response.statusText}`);
             }
             
             const data = await response.json();
-            console.log(`✅ Отримано елементів: ${data.length}`);
-            return data;
+            
+            // Перевіряємо, чи це масив (вміст папки) або об'єкт (один файл)
+            if (Array.isArray(data)) {
+                console.log(`✅ Отримано елементів: ${data.length}`);
+                return data;
+            } else {
+                console.log(`✅ Отримано файл: ${data.name}`);
+                return [data];
+            }
             
         } catch (error) {
             console.error('❌ Помилка отримання даних з GitHub:', error);
@@ -267,7 +313,9 @@ class WikiEngine {
         if (this.pages.length === 0) {
             html += 'Не знайдено жодної сторінки';
         } else {
+            html += '<div style="max-height: 400px; overflow-y: auto; padding: 5px;">';
             html += this.buildNavigationHTML(this.structure);
+            html += '</div>';
         }
         
         html += '</font>';
@@ -280,7 +328,7 @@ class WikiEngine {
         const indent = '&nbsp;'.repeat(level * 4);
 
         if (node.type === 'file') {
-            html += `${indent}<a href="#" onclick="wiki.loadPage('${node.path.replace('pages/', '').replace('.md', '')}')" style="color:#4A90E2; text-decoration:none;">${node.name}</a><br>`;
+            html += `${indent}<a href="#" onclick="wiki.loadPage('${node.path.replace('pages/', '').replace('.md', '')}')" style="color:#4A90E2; text-decoration:none; display:block; padding: 2px 0;">📄 ${node.name}</a>`;
         } else if (node.type === 'folder') {
             // Показуємо папку тільки якщо вона не порожня
             const hasVisibleChildren = node.children && node.children.some(child => 
@@ -289,7 +337,7 @@ class WikiEngine {
 
             if (hasVisibleChildren) {
                 if (level > 0) {
-                    html += `${indent}<b style="color:#CCCCCC;">${node.name}</b><br>`;
+                    html += `${indent}<div style="color:#CCCCCC; font-weight:bold; margin: 5px 0;">📁 ${node.name}</div>`;
                 }
                 
                 if (node.children) {
