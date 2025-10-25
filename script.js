@@ -113,7 +113,7 @@ class WikiEngine {
             html += `
                 <div class="nav-item nav-folder" style="margin-left: ${(level - 1) * 15}px" 
                      onclick="this.nextElementSibling.classList.toggle('hidden')">
-                    📁 ${node.name}
+                    ${node.name}
                 </div>
                 <div class="folder-contents">
             `;
@@ -403,9 +403,9 @@ class WikiEngine {
                 <div class="article-nav">
                     <h3>Інформація про систему</h3>
                     <p><strong>Репозиторій:</strong> ${this.repoOwner}/${this.repoName}</p>
-                    <p><strong>Автоматичне сканування:</strong> ✅ Увімкнено</p>
-                    <p><strong>Динамічна структура:</strong> ✅ Активна</p>
-                    <p><a href="https://github.com/${this.repoOwner}/${this.repoName}" target="_blank">📝 Редагувати на GitHub</a></p>
+                    <p><strong>Автоматичне сканування:</strong> Увімкнено</p>
+                    <p><strong>Динамічна структура:</strong> Активна</p>
+                    <p><a href="https://github.com/${this.repoOwner}/${this.repoName}" target="_blank">Редагувати на GitHub</a></p>
                 </div>
             </div>
         `;
@@ -450,14 +450,14 @@ class WikiEngine {
     showError(elementId, message) {
         document.getElementById(elementId).innerHTML = `
             <div style="color: red; text-align: center; padding: 20px;">
-                ❌ ${message}
+                ${message}
             </div>
         `;
     }
 
     updateQuickStats() {
         document.getElementById('quickStats').innerHTML = `
-            📊 <strong>${this.pages.length}</strong> сторінок у <strong>${this.countFolders(this.structure)}</strong> категоріях<br>
+            <strong>${this.pages.length}</strong> сторінок у <strong>${this.countFolders(this.structure)}</strong> категоріях<br>
             <small>Структура оновлена: ${this.lastScan ? this.lastScan.toLocaleTimeString('uk-UA') : 'щойно'}</small>
         `;
     }
