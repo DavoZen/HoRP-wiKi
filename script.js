@@ -1,4 +1,4 @@
-// HoRP-wiKi - Автоматична система для табличної верстки
+// HoRP-wiKi - Повністю автоматична система з GitHub API
 class WikiEngine {
     constructor() {
         this.repoOwner = 'pisdukblaty';
@@ -9,6 +9,9 @@ class WikiEngine {
         this.pages = [];
         this.structure = {};
         this.lastScan = null;
+        
+        // Ініціалізація
+        this.init();
     }
 
     async init() {
@@ -27,17 +30,21 @@ class WikiEngine {
 
         // Обробка початкового URL
         this.handleInitialUrl();
+        
+        // Налаштування пошукових підказок
+        this.setupSearchSuggestions();
     }
 
     updateVisitCounter() {
         if (!localStorage.visitCount) localStorage.visitCount = 0;
         localStorage.visitCount++;
-        document.getElementById('pageCounter').textContent = `Відвідувачів: ${localStorage.visitCount}`;
+        document.getElementById('pageCounter').textContent = 
+            `Відвідувачів: ${localStorage.visitCount}`;
     }
 
     // Автоматичне сканування GitHub репозиторію
     async scanRepository() {
-        this.showLoading('navMenu', 'Сканування структури GitHub...');
+        this.showLoading('navMenu', '🔄 Сканування структури GitHub...');
         
         try {
             // Отримуємо вміст папки pages
@@ -53,9 +60,11 @@ class WikiEngine {
             // Кешуємо дані
             this.cacheData();
             
+            this.showSuccess('navMenu', '✅ Структура оновлена!');
+            
         } catch (error) {
             console.error('Помилка сканування:', error);
-            this.showError('navMenu', 'Помилка сканування GitHub');
+            this.showError('navMenu', '❌ Помилка сканування GitHub');
         }
     }
 
@@ -117,31 +126,50 @@ class WikiEngine {
         return pages;
     }
 
-    // Побудова навігації для табличної верстки
+    // Побудова навігації
     buildNavigation() {
         const navElement = document.getElementById('navMenu');
-        let html = '<font face="Arial" size="2" color="#CCCCCC">';
-        html += this.buildNavigationHTML(this.structure);
-        html += '</font>';
-        navElement.innerHTML = html;
+        navElement.innerHTML = this.buildNavigationHTML(this.structure);
     }
 
     buildNavigationHTML(node, level = 0) {
         if (node.type === 'file') {
-            const indent = '&nbsp;'.repeat(level * 4);
-            return `${indent}<a href="#" onclick="wiki.loadPage('${node.path.replace('pages/', '').replace('.md', '')}')" style="color:#4A90E2; text-decoration:none;">${node.name}</a><br>`;
+            return `
+                <div class="nav-item nav-page" style="margin-left: ${level * 15}px">
+                    <a href="#" onclick="wiki.loadPage('${node.path.replace('pages/', '').replace('.md', '')}')">
+                        ${node.name}
+                    </a>
+                </div>
+            `;
         }
 
         let html = '';
-        if (level > 0) {
-            const indent = '&nbsp;'.repeat((level - 1) * 4);
-            html += `${indent}<b style="color:#CCCCCC;">${node.name}</b><br>`;
-        }
-
-        if (node.children) {
-            node.children.forEach(child => {
-                html += this.buildNavigationHTML(child, level + 1);
-            });
+        const displayName = node.name === 'pages' ? '📂 Корінь' : `📁 ${node.name}`;
+        
+        if (level === 0) {
+            // Коренева папка
+            html += `<div class="nav-folder">${displayName}</div>`;
+            if (node.children && node.children.length > 0) {
+                html += `<div class="folder-contents">`;
+                node.children.forEach(child => {
+                    html += this.buildNavigationHTML(child, level + 1);
+                });
+                html += `</div>`;
+            }
+        } else {
+            // Вкладені папки
+            html += `
+                <div class="nav-item nav-folder" style="margin-left: ${(level - 1) * 15}px">
+                    ${displayName}
+                </div>
+            `;
+            if (node.children && node.children.length > 0) {
+                html += `<div class="folder-contents">`;
+                node.children.forEach(child => {
+                    html += this.buildNavigationHTML(child, level + 1);
+                });
+                html += `</div>`;
+            }
         }
 
         return html;
@@ -150,7 +178,7 @@ class WikiEngine {
     // Завантаження сторінки
     async loadPage(pagePath) {
         this.showMainContent('articleContent');
-        this.showLoading('articleContent', 'Завантаження сторінки...');
+        this.showLoading('articleContent', '📖 Завантаження сторінки...');
 
         try {
             const page = this.pages.find(p => p.path === pagePath);
@@ -163,30 +191,16 @@ class WikiEngine {
             const html = this.convertMarkdownToHtml(markdown);
 
             document.getElementById('articleContent').innerHTML = `
-                <table width="100%" cellspacing="0" cellpadding="10" border="0">
-                    <tr>
-                        <td bgcolor="#2A2A2A">
-                            <font face="Arial" size="2" color="#CCCCCC">
-                                <a href="#" onclick="wiki.showMainPage()" style="color:#4A90E2;">Головна</a> &gt; 
-                                ${this.generateBreadcrumbs(pagePath)}
-                            </font>
-                        </td>
-                    </tr>
-                    <tr>
-                        <td>
-                            <div class="article-content">
-                                ${html}
-                            </div>
-                        </td>
-                    </tr>
-                    <tr>
-                        <td bgcolor="#2A2A2A">
-                            <font face="Arial" size="1" color="#888888">
-                                Останнє оновлення: ${new Date().toLocaleDateString('uk-UA')}
-                            </font>
-                        </td>
-                    </tr>
-                </table>
+                <div class="article-nav">
+                    🏠 <a href="#" onclick="wiki.showMainPage()">Головна</a> › 
+                    ${this.generateBreadcrumbs(pagePath)}
+                </div>
+                <div class="article-content">
+                    ${html}
+                </div>
+                <div class="article-nav">
+                    <small>📝 Останнє оновлення: ${new Date().toLocaleDateString('uk-UA')}</small>
+                </div>
             `;
 
             this.updateUrl(`?page=${pagePath}`);
@@ -194,76 +208,54 @@ class WikiEngine {
 
         } catch (error) {
             document.getElementById('articleContent').innerHTML = `
-                <table width="100%" cellspacing="0" cellpadding="20" border="0">
-                    <tr>
-                        <td align="center">
-                            <font face="Arial" size="4" color="#FF6B6B">
-                                <b>Помилка 404</b>
-                            </font>
-                            <br><br>
-                            <font face="Arial" size="2" color="#CCCCCC">
-                                Статтю "<b>${pagePath}</b>" не знайдено в репозиторії.
-                                <br><br>
-                                <a href="#" onclick="wiki.showMainPage()" style="color:#4A90E2;">Повернутися на головну</a>
-                            </font>
-                        </td>
-                    </tr>
-                </table>
+                <div class="article-content">
+                    <h1>❌ Помилка 404</h1>
+                    <p>Статтю "<b>${pagePath}</b>" не знайдено в репозиторії.</p>
+                    <p>🔍 <a href="#" onclick="wiki.showAllPages()">Переглянути всі доступні сторінки</a></p>
+                </div>
             `;
         }
     }
 
     // Конвертація Markdown в HTML
     convertMarkdownToHtml(markdown) {
-        let html = markdown;
-
-        // Заголовки
-        html = html.replace(/^### (.*$)/gim, '<font face="Arial" size="4" color="#4A90E2"><b>$1</b></font><br>');
-        html = html.replace(/^## (.*$)/gim, '<font face="Arial" size="5" color="#4A90E2"><b>$1</b></font><br>');
-        html = html.replace(/^# (.*$)/gim, '<font face="Arial" size="6" color="#4A90E2"><b>$1</b></font><br>');
-        
-        // Жирний текст
-        html = html.replace(/\*\*(.*?)\*\*/g, '<b>$1</b>');
-        
-        // Курсив
-        html = html.replace(/\*(.*?)\*/g, '<i>$1</i>');
-        
-        // Код
-        html = html.replace(/`(.*?)`/g, '<code style="background:#2A2A2A; padding:2px 4px; border-radius:3px; font-family:monospace;">$1</code>');
-        
-        // Блоки коду
-        html = html.replace(/```(\w+)?\n([\s\S]*?)```/g, '<pre style="background:#2A2A2A; padding:10px; border-radius:5px; overflow-x:auto; font-family:monospace; font-size:12px;">$2</pre>');
-        
-        // Зображення
-        html = html.replace(/!\[(.*?)\]\((.*?)\)/g, (match, alt, src) => {
-            const fullSrc = src.startsWith('http') ? src : `${this.baseUrl}/${src}`;
-            return `<img src="${fullSrc}" alt="${alt}" style="max-width:100%; border:1px solid #444; border-radius:5px; margin:10px 0;">`;
-        });
-        
-        // Зовнішні посилання
-        html = html.replace(/\[(.*?)\]\((http.*?)\)/g, '<a href="$2" target="_blank" style="color:#4A90E2;">$1</a>');
-        
-        // Внутрішні посилання (вікі-синтаксис)
-        html = html.replace(/\[\[(.*?)\]\]/g, (match, pageName) => {
-            const foundPage = this.pages.find(p => p.title === pageName || p.path === pageName);
-            return foundPage ? 
-                `<a href="#" onclick="wiki.loadPage('${foundPage.path}')" style="color:#4A90E2;">${pageName}</a>` :
-                `<span style="color:#888;" title="Сторінка не знайдена">${pageName}</span>`;
-        });
-        
-        // Горизонтальна лінія
-        html = html.replace(/^-{3,}$/gim, '<hr style="border:1px solid #444; margin:20px 0;">');
-        
-        // Списки
-        html = html.replace(/^- (.*$)/gim, '<li style="margin:5px 0;">$1</li>');
-        html = html.replace(/(<li>.*<\/li>)/s, '<ul style="margin:10px 0; padding-left:20px;">$1</ul>');
-        
-        // Абзаци
-        html = html.replace(/\n\n/g, '</p><p style="margin:10px 0;">');
-        html = html.replace(/\n/g, '<br>');
-        html = '<p style="margin:10px 0;">' + html + '</p>';
-
-        return html;
+        return markdown
+            // Заголовки
+            .replace(/^### (.*$)/gim, '<h3>$1</h3>')
+            .replace(/^## (.*$)/gim, '<h2>$1</h2>')
+            .replace(/^# (.*$)/gim, '<h1>$1</h1>')
+            // Жирний текст
+            .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
+            // Курсив
+            .replace(/\*(.*?)\*/g, '<em>$1</em>')
+            // Код
+            .replace(/`(.*?)`/g, '<code>$1</code>')
+            // Блоки коду
+            .replace(/```(\w+)?\n([\s\S]*?)```/g, '<pre>$2</pre>')
+            // Зображення
+            .replace(/!\[(.*?)\]\((.*?)\)/g, (match, alt, src) => {
+                const fullSrc = src.startsWith('http') ? src : `${this.baseUrl}/${src}`;
+                return `<img src="${fullSrc}" alt="${alt}" style="max-width:100%">`;
+            })
+            // Зовнішні посилання
+            .replace(/\[(.*?)\]\((http.*?)\)/g, '<a href="$2" target="_blank">$1</a>')
+            // Внутрішні посилання (вікі-синтаксис)
+            .replace(/\[\[(.*?)\]\]/g, (match, pageName) => {
+                const foundPage = this.pages.find(p => 
+                    p.title === pageName || p.path === pageName
+                );
+                return foundPage ? 
+                    `<a href="#" onclick="wiki.loadPage('${foundPage.path}')" class="wiki-link">${pageName}</a>` :
+                    `<span class="broken-link" title="Сторінка не знайдена">${pageName}</span>`;
+            })
+            // Горизонтальна лінія
+            .replace(/^-{3,}$/gim, '<hr>')
+            // Списки
+            .replace(/^- (.*$)/gim, '<li>$1</li>')
+            .replace(/(<li>.*<\/li>)/s, '<ul>$1</ul>')
+            // Абзаци
+            .replace(/\n\n/g, '</p><p>')
+            .replace(/\n/g, '<br>');
     }
 
     // Генерація хлібних крихт
@@ -277,9 +269,9 @@ class WikiEngine {
             const isLast = index === parts.length - 1;
 
             if (isLast) {
-                breadcrumbs += `<b>${part}</b>`;
+                breadcrumbs += `<strong>${part}</strong>`;
             } else {
-                breadcrumbs += `<a href="#" onclick="wiki.loadPage('${currentPath}')" style="color:#4A90E2;">${part}</a> / `;
+                breadcrumbs += `<a href="#" onclick="wiki.loadPage('${currentPath}')">${part}</a> › `;
             }
         });
 
@@ -297,10 +289,10 @@ class WikiEngine {
         }
 
         this.showMainContent('searchResults');
-        this.showLoading('searchResults', 'Пошук...');
+        this.showLoading('searchResults', '🔍 Пошук...');
 
         // Невелика затримка для анімації
-        await new Promise(resolve => setTimeout(resolve, 500));
+        await new Promise(resolve => setTimeout(resolve, 600));
 
         const results = await this.searchPages(query);
         this.displaySearchResults(results, query);
@@ -317,7 +309,7 @@ class WikiEngine {
 
         // Шукаємо в контенті сторінок (обмежено кількістю)
         const contentResults = [];
-        for (const page of this.pages.slice(0, 10)) {
+        for (const page of this.pages.slice(0, 20)) { // Обмежуємо для продуктивності
             try {
                 const response = await fetch(page.url);
                 const content = await response.text();
@@ -344,6 +336,7 @@ class WikiEngine {
             }
         });
 
+        // Сортуємо: спочатку збіг у назві, потім у контенті
         return results.sort((a, b) => {
             if (a.matchType === 'title' && b.matchType !== 'title') return -1;
             if (a.matchType !== 'title' && b.matchType === 'title') return 1;
@@ -364,7 +357,7 @@ class WikiEngine {
         
         // Підсвічування
         const regex = new RegExp(`(${this.escapeRegExp(query)})`, 'gi');
-        excerpt = excerpt.replace(regex, '<span style="background:rgba(255,107,53,0.3); padding:1px 2px; border-radius:2px;">$1</span>');
+        excerpt = excerpt.replace(regex, '<span class="highlight">$1</span>');
         
         return (start > 0 ? '...' : '') + excerpt + (end < content.length ? '...' : '');
     }
@@ -375,79 +368,38 @@ class WikiEngine {
 
     displaySearchResults(results, query) {
         let html = `
-            <table width="100%" cellspacing="0" cellpadding="0" border="0">
-                <tr>
-                    <td>
-                        <font face="Arial" size="5" color="#4A90E2">
-                            <b>Результати пошуку</b>
-                        </font>
-                        <br><br>
-                        <font face="Arial" size="2" color="#CCCCCC">
-                            Запит: "<b>${query}</b>"
-                            <br>
-                            Знайдено: <b>${results.length}</b> результатів
-                        </font>
-                    </td>
-                </tr>
+            <div class="article-content">
+                <h1>🔍 Результати пошуку</h1>
+                <p>Запит: "<strong>${query}</strong>"</p>
+                <p>Знайдено: <strong>${results.length}</strong> результатів</p>
         `;
 
         if (results.length === 0) {
             html += `
-                <tr>
-                    <td style="padding:20px 0;">
-                        <table width="100%" cellspacing="0" cellpadding="15" border="0" bgcolor="#2A2A2A" style="border-radius:5px;">
-                            <tr>
-                                <td>
-                                    <font face="Arial" size="2" color="#CCCCCC">
-                                        <b>Нічого не знайдено</b>
-                                        <br><br>
-                                        Спробуйте:
-                                        <ul>
-                                            <li>Перевірити правопис</li>
-                                            <li>Використовувати інші ключові слова</li>
-                                            <li><a href="#" onclick="wiki.showAllPages()" style="color:#4A90E2;">Переглянути всі сторінки</a></li>
-                                        </ul>
-                                    </font>
-                                </td>
-                            </tr>
-                        </table>
-                    </td>
-                </tr>
+                <div class="search-result">
+                    <h3>😔 Нічого не знайдено</h3>
+                    <p>Спробуйте:</p>
+                    <ul>
+                        <li>Перевірити правопис</li>
+                        <li>Використовувати інші ключові слова</li>
+                        <li><a href="#" onclick="wiki.showAllPages()">Переглянути всі сторінки</a></li>
+                    </ul>
+                </div>
             `;
         } else {
             results.forEach(result => {
+                const icon = result.matchType === 'title' ? '📌' : '📄';
                 html += `
-                    <tr>
-                        <td style="padding:10px 0;">
-                            <table width="100%" cellspacing="0" cellpadding="15" border="0" bgcolor="#2A2A2A" style="border-radius:5px; cursor:pointer; border:1px solid #333;" 
-                                   onclick="wiki.loadPage('${result.path}')" 
-                                   onmouseover="this.style.borderColor='#4A90E2'; this.style.backgroundColor='#333';" 
-                                   onmouseout="this.style.borderColor='#333'; this.style.backgroundColor='#2A2A2A';">
-                                <tr>
-                                    <td>
-                                        <font face="Arial" size="3" color="#4A90E2">
-                                            <b>${result.title}</b>
-                                        </font>
-                                        ${result.excerpt ? `
-                                        <br>
-                                        <font face="Arial" size="2" color="#888888">
-                                            ${result.excerpt}
-                                        </font>
-                                        ` : ''}
-                                        <br>
-                                        <font face="Arial" size="1" color="#666666">
-                                            Шлях: ${result.path}
-                                        </font>
-                                    </td>
-                                </tr>
-                            </table>
-                        </td>
-                    </tr>
+                    <div class="search-result" onclick="wiki.loadPage('${result.path}')">
+                        <h3>${icon} ${result.title}</h3>
+                        ${result.excerpt ? `<div class="excerpt">${result.excerpt}</div>` : ''}
+                        <small>📍 Шлях: ${result.path}</small>
+                    </div>
                 `;
             });
         }
 
-        html += '</table>';
+        html += '</div>';
         document.getElementById('searchResults').innerHTML = html;
         
         this.updateUrl(`?search=${encodeURIComponent(query)}`);
@@ -458,95 +410,39 @@ class WikiEngine {
         this.showMainContent('allPages');
         
         let html = `
-            <table width="100%" cellspacing="0" cellpadding="0" border="0">
-                <tr>
-                    <td>
-                        <font face="Arial" size="5" color="#4A90E2">
-                            <b>Всі сторінки (${this.pages.length})</b>
-                        </font>
-                    </td>
-                </tr>
-                <tr>
-                    <td style="padding:20px 0;">
-                        <table width="100%" cellspacing="10" cellpadding="0" border="0">
-                            <tr>
-                                <td width="33%" valign="top">
-                                    <table width="100%" cellspacing="0" cellpadding="15" border="0" bgcolor="#2A2A2A" style="border-radius:5px; text-align:center;">
-                                        <tr>
-                                            <td>
-                                                <font face="Arial" size="6" color="#4A90E2">
-                                                    <b>${this.pages.length}</b>
-                                                </font>
-                                                <br>
-                                                <font face="Arial" size="2" color="#CCCCCC">
-                                                    Всього сторінок
-                                                </font>
-                                            </td>
-                                        </tr>
-                                    </table>
-                                </td>
-                                <td width="33%" valign="top">
-                                    <table width="100%" cellspacing="0" cellpadding="15" border="0" bgcolor="#2A2A2A" style="border-radius:5px; text-align:center;">
-                                        <tr>
-                                            <td>
-                                                <font face="Arial" size="6" color="#4A90E2">
-                                                    <b>${this.countFolders(this.structure)}</b>
-                                                </font>
-                                                <br>
-                                                <font face="Arial" size="2" color="#CCCCCC">
-                                                    Категорій
-                                                </font>
-                                            </td>
-                                        </tr>
-                                    </table>
-                                </td>
-                                <td width="33%" valign="top">
-                                    <table width="100%" cellspacing="0" cellpadding="15" border="0" bgcolor="#2A2A2A" style="border-radius:5px; text-align:center;">
-                                        <tr>
-                                            <td>
-                                                <font face="Arial" size="6" color="#4A90E2">
-                                                    <b>${this.lastScan ? this.lastScan.toLocaleDateString('uk-UA') : '-'}</b>
-                                                </font>
-                                                <br>
-                                                <font face="Arial" size="2" color="#CCCCCC">
-                                                    Останнє сканування
-                                                </font>
-                                            </td>
-                                        </tr>
-                                    </table>
-                                </td>
-                            </tr>
-                        </table>
-                    </td>
-                </tr>
+            <div class="article-content">
+                <h1>📚 Всі сторінки</h1>
+                <div class="stats-grid">
+                    <div class="stat-card">
+                        <span class="stat-number">${this.pages.length}</span>
+                        <span class="stat-label">Всього сторінок</span>
+                    </div>
+                    <div class="stat-card">
+                        <span class="stat-number">${this.calculateTotalSize()}</span>
+                        <span class="stat-label">КБ контенту</span>
+                    </div>
+                    <div class="stat-card">
+                        <span class="stat-number">${this.lastScan ? this.lastScan.toLocaleDateString('uk-UA') : '-'}</span>
+                        <span class="stat-label">Останнє сканування</span>
+                    </div>
+                </div>
+                <div class="pages-list">
         `;
 
         this.pages.forEach(page => {
             html += `
-                <tr>
-                    <td style="padding:5px 0;">
-                        <table width="100%" cellspacing="0" cellpadding="10" border="0" bgcolor="#2A2A2A" style="border-radius:5px; cursor:pointer; border:1px solid #333;" 
-                               onclick="wiki.loadPage('${page.path}')" 
-                               onmouseover="this.style.borderColor='#4A90E2'; this.style.backgroundColor='#333';" 
-                               onmouseout="this.style.borderColor='#333'; this.style.backgroundColor='#2A2A2A';">
-                            <tr>
-                                <td>
-                                    <font face="Arial" size="3" color="#4A90E2">
-                                        <b>${page.title}</b>
-                                    </font>
-                                    <br>
-                                    <font face="Arial" size="1" color="#666666">
-                                        Шлях: ${page.path} | Розмір: ${Math.ceil(page.size / 1024)} КБ
-                                    </font>
-                                </td>
-                            </tr>
-                        </table>
-                    </td>
-                </tr>
+                <div class="search-result" onclick="wiki.loadPage('${page.path}')">
+                    <h3>📄 ${page.title}</h3>
+                    <small>📍 Шлях: ${page.path} | 📏 Розмір: ${Math.ceil(page.size / 1024)} КБ</small>
+                </div>
             `;
         });
 
-        html += '</table>';
+        html += `
+                </div>
+            </div>
+        `;
+        
         document.getElementById('allPages').innerHTML = html;
     }
 
@@ -558,108 +454,35 @@ class WikiEngine {
         const categories = this.countCategories();
         
         const html = `
-            <table width="100%" cellspacing="0" cellpadding="0" border="0">
-                <tr>
-                    <td>
-                        <font face="Arial" size="5" color="#4A90E2">
-                            <b>Статистика HoRP-wiKi</b>
-                        </font>
-                    </td>
-                </tr>
-                <tr>
-                    <td style="padding:20px 0;">
-                        <table width="100%" cellspacing="10" cellpadding="0" border="0">
-                            <tr>
-                                <td width="25%" valign="top">
-                                    <table width="100%" cellspacing="0" cellpadding="20" border="0" bgcolor="#2A2A2A" style="border-radius:5px; text-align:center;">
-                                        <tr>
-                                            <td>
-                                                <font face="Arial" size="8" color="#4A90E2">
-                                                    <b>${this.pages.length}</b>
-                                                </font>
-                                                <br>
-                                                <font face="Arial" size="2" color="#CCCCCC">
-                                                    Сторінок
-                                                </font>
-                                            </td>
-                                        </tr>
-                                    </table>
-                                </td>
-                                <td width="25%" valign="top">
-                                    <table width="100%" cellspacing="0" cellpadding="20" border="0" bgcolor="#2A2A2A" style="border-radius:5px; text-align:center;">
-                                        <tr>
-                                            <td>
-                                                <font face="Arial" size="8" color="#4A90E2">
-                                                    <b>${categories}</b>
-                                                </font>
-                                                <br>
-                                                <font face="Arial" size="2" color="#CCCCCC">
-                                                    Категорій
-                                                </font>
-                                            </td>
-                                        </tr>
-                                    </table>
-                                </td>
-                                <td width="25%" valign="top">
-                                    <table width="100%" cellspacing="0" cellpadding="20" border="0" bgcolor="#2A2A2A" style="border-radius:5px; text-align:center;">
-                                        <tr>
-                                            <td>
-                                                <font face="Arial" size="8" color="#4A90E2">
-                                                    <b>${totalSize}</b>
-                                                </font>
-                                                <br>
-                                                <font face="Arial" size="2" color="#CCCCCC">
-                                                    КБ контенту
-                                                </font>
-                                            </td>
-                                        </tr>
-                                    </table>
-                                </td>
-                                <td width="25%" valign="top">
-                                    <table width="100%" cellspacing="0" cellpadding="20" border="0" bgcolor="#2A2A2A" style="border-radius:5px; text-align:center;">
-                                        <tr>
-                                            <td>
-                                                <font face="Arial" size="8" color="#4A90E2">
-                                                    <b>${localStorage.visitCount || 0}</b>
-                                                </font>
-                                                <br>
-                                                <font face="Arial" size="2" color="#CCCCCC">
-                                                    Відвідувачів
-                                                </font>
-                                            </td>
-                                        </tr>
-                                    </table>
-                                </td>
-                            </tr>
-                        </table>
-                    </td>
-                </tr>
-                <tr>
-                    <td>
-                        <table width="100%" cellspacing="0" cellpadding="15" border="0" bgcolor="#2A2A2A" style="border-radius:5px;">
-                            <tr>
-                                <td>
-                                    <font face="Arial" size="3" color="#4A90E2">
-                                        <b>Інформація про систему</b>
-                                    </font>
-                                    <br><br>
-                                    <font face="Arial" size="2" color="#CCCCCC">
-                                        <b>Репозиторій:</b> ${this.repoOwner}/${this.repoName}
-                                        <br>
-                                        <b>Гілка:</b> ${this.branch}
-                                        <br>
-                                        <b>Автоматичне сканування:</b> Увімкнено
-                                        <br>
-                                        <b>Останнє оновлення:</b> ${this.lastScan ? this.lastScan.toLocaleString('uk-UA') : '-'}
-                                        <br><br>
-                                        <a href="https://github.com/${this.repoOwner}/${this.repoName}" target="_blank" style="color:#4A90E2;">Редагувати на GitHub</a>
-                                    </font>
-                                </td>
-                            </tr>
-                        </table>
-                    </td>
-                </tr>
-            </table>
+            <div class="article-content">
+                <h1>📊 Статистика HoRP-wiKi</h1>
+                <div class="stats-grid">
+                    <div class="stat-card">
+                        <span class="stat-number">${this.pages.length}</span>
+                        <span class="stat-label">Сторінок</span>
+                    </div>
+                    <div class="stat-card">
+                        <span class="stat-number">${categories}</span>
+                        <span class="stat-label">Категорій</span>
+                    </div>
+                    <div class="stat-card">
+                        <span class="stat-number">${totalSize}</span>
+                        <span class="stat-label">КБ контенту</span>
+                    </div>
+                    <div class="stat-card">
+                        <span class="stat-number">${localStorage.visitCount || 0}</span>
+                        <span class="stat-label">Відвідувачів</span>
+                    </div>
+                </div>
+                <div class="article-nav">
+                    <h3>📋 Інформація про систему</h3>
+                    <p><strong>Репозиторій:</strong> ${this.repoOwner}/${this.repoName}</p>
+                    <p><strong>Гілка:</strong> ${this.branch}</p>
+                    <p><strong>Автоматичне сканування:</strong> ✅ Увімкнено</p>
+                    <p><strong>Останнє оновлення:</strong> ${this.lastScan ? this.lastScan.toLocaleString('uk-UA') : '-'}</p>
+                    <p><a href="https://github.com/${this.repoOwner}/${this.repoName}" target="_blank">📝 Редагувати на GitHub</a></p>
+                </div>
+            </div>
         `;
         
         document.getElementById('searchResults').innerHTML = html;
@@ -668,19 +491,6 @@ class WikiEngine {
     // Допоміжні методи
     calculateTotalSize() {
         return Math.ceil(this.pages.reduce((sum, page) => sum + (page.size || 0), 0) / 1024);
-    }
-
-    countFolders(node) {
-        if (node.type !== 'folder') return 0;
-        let count = 1;
-        if (node.children) {
-            node.children.forEach(child => {
-                if (child.type === 'folder') {
-                    count += this.countFolders(child);
-                }
-            });
-        }
-        return count;
     }
 
     countCategories() {
@@ -700,44 +510,38 @@ class WikiEngine {
     }
 
     showMainContent(contentId) {
-        // Ховаємо всі контентні області
-        document.getElementById('mainSearch').style.display = 'none';
-        document.getElementById('articleContent').style.display = 'none';
-        document.getElementById('searchResults').style.display = 'none';
-        document.getElementById('allPages').style.display = 'none';
-        
-        // Показуємо потрібну область
-        document.getElementById(contentId).style.display = 'block';
+        document.querySelectorAll('.main-content').forEach(el => {
+            el.classList.add('hidden');
+        });
+        document.getElementById(contentId).classList.remove('hidden');
     }
 
     showLoading(elementId, message) {
         document.getElementById(elementId).innerHTML = `
-            <table width="100%" height="200" cellspacing="0" cellpadding="0" border="0">
-                <tr>
-                    <td align="center" valign="middle">
-                        <font face="Arial" size="2" color="#CCCCCC">
-                            ${message}
-                        </font>
-                    </td>
-                </tr>
-            </table>
+            <div class="loading">
+                ${message}
+            </div>
         `;
+    }
+
+    showSuccess(elementId, message) {
+        const element = document.getElementById(elementId);
+        element.innerHTML = `<div style="color: green; text-align: center;">${message}</div>`;
+        setTimeout(() => this.buildNavigation(), 2000);
     }
 
     showError(elementId, message) {
         document.getElementById(elementId).innerHTML = `
-            <font face="Arial" size="2" color="#FF6B6B">
+            <div style="color: red; text-align: center;">
                 ${message}
-            </font>
+            </div>
         `;
     }
 
     updateQuickStats() {
         document.getElementById('quickStats').innerHTML = `
-            <font face="Arial" size="2" color="#CCCCCC">
-                <b>${this.pages.length}</b> сторінок у <b>${this.countCategories()}</b> категоріях<br>
-                <small>Оновлено: ${this.lastScan ? this.lastScan.toLocaleTimeString('uk-UA') : 'щойно'}</small>
-            </font>
+            📊 <strong>${this.pages.length}</strong> сторінок у <strong>${this.countCategories()}</strong> категоріях<br>
+            <small>🕐 Оновлено: ${this.lastScan ? this.lastScan.toLocaleTimeString('uk-UA') : 'щойно'}</small>
         `;
     }
 
@@ -809,20 +613,63 @@ class WikiEngine {
                 const elements = document.querySelectorAll('.article-content');
                 elements.forEach(el => {
                     const regex = new RegExp(`(${this.escapeRegExp(search)})`, 'gi');
-                    el.innerHTML = el.innerHTML.replace(regex, '<span style="background:rgba(255,107,53,0.3); padding:1px 2px; border-radius:2px;">$1</span>');
+                    el.innerHTML = el.innerHTML.replace(regex, '<span class="highlight">$1</span>');
                 });
             }, 100);
         }
+    }
+
+    // Підказки пошуку
+    setupSearchSuggestions() {
+        const searchBox = document.getElementById('searchBox');
+        const mainSearchBox = document.getElementById('mainSearchBox');
+        const suggestions = document.getElementById('searchSuggestions');
+
+        const setupBox = (box) => {
+            box.addEventListener('input', (e) => {
+                const query = e.target.value.toLowerCase();
+                if (query.length < 2) {
+                    suggestions.style.display = 'none';
+                    return;
+                }
+
+                const matchedPages = this.pages
+                    .filter(page => page.title.toLowerCase().includes(query))
+                    .slice(0, 5);
+
+                if (matchedPages.length > 0) {
+                    suggestions.innerHTML = matchedPages.map(page => 
+                        `<div class="suggestion-item" onclick="wiki.selectSuggestion('${page.path}')">
+                            ${page.title}
+                        </div>`
+                    ).join('');
+                    suggestions.style.display = 'block';
+                } else {
+                    suggestions.style.display = 'none';
+                }
+            });
+
+            box.addEventListener('blur', () => {
+                setTimeout(() => {
+                    suggestions.style.display = 'none';
+                }, 200);
+            });
+        };
+
+        setupBox(searchBox);
+        setupBox(mainSearchBox);
+    }
+
+    selectSuggestion(path) {
+        this.loadPage(path);
+        document.getElementById('searchSuggestions').style.display = 'none';
+        document.getElementById('searchBox').value = '';
+        document.getElementById('mainSearchBox').value = '';
     }
 }
 
 // Глобальний екземпляр
 const wiki = new WikiEngine();
-
-// Ініціалізація при завантаженні
-document.addEventListener('DOMContentLoaded', () => {
-    wiki.init();
-});
 
 // Глобальні функції для HTML
 function performSearch() { wiki.performSearch(); }
