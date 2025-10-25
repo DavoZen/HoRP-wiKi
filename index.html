@@ -7,7 +7,7 @@
     <link rel="stylesheet" href="style.css">
     <link rel="icon" href="favicon.ico" type="image/x-icon">
 </head>
-<body>
+<body class="dark-theme">
     <div id="header">
         <table width="100%" cellspacing="0" cellpadding="0" border="0">
             <tr>
@@ -26,8 +26,8 @@
                             </td>
                         </tr>
                         <tr>
-                            <td bgcolor="#F0F0F0" align="center">
-                                <font face="Arial" size="2">
+                            <td bgcolor="#2A2A2A" align="center">
+                                <font face="Arial" size="2" color="#CCCCCC">
                                     Вільна енциклопедія, яку може редагувати кожен
                                 </font>
                             </td>
@@ -39,10 +39,10 @@
     </div>
 
     <div id="navbar">
-        <table width="100%" cellspacing="0" cellpadding="3" border="0" bgcolor="#E6E6FA">
+        <table width="100%" cellspacing="0" cellpadding="3" border="0" bgcolor="#333333">
             <tr>
                 <td>
-                    <font face="Arial" size="2">
+                    <font face="Arial" size="2" color="#CCCCCC">
                         <a href="#" onclick="showMainPage()">Головна</a> | 
                         <a href="#" onclick="showAllPages()">Всі сторінки</a> | 
                         <a href="#" onclick="showRandomPage()">Випадкова стаття</a> |
@@ -50,7 +50,7 @@
                     </font>
                 </td>
                 <td align="right">
-                    <font face="Arial" size="2">
+                    <font face="Arial" size="2" color="#CCCCCC">
                         <span id="pageCounter">Відвідувачів: 0</span>
                     </font>
                 </td>
@@ -60,26 +60,26 @@
 
     <table width="100%" cellspacing="0" cellpadding="0" border="0">
         <tr>
-            <td width="200" valign="top" bgcolor="#F8F8FF">
+            <td width="200" valign="top" bgcolor="#1E1E1E">
                 <div id="sidebar">
                     <table width="100%" cellspacing="0" cellpadding="5" border="0">
                         <tr>
-                            <td bgcolor="#DEDEDE">
-                                <font face="Arial" size="2"><b>Навігація</b></font>
+                            <td bgcolor="#333333">
+                                <font face="Arial" size="2" color="#CCCCCC"><b>Навігація</b></font>
                             </td>
                         </tr>
                         <tr>
                             <td>
                                 <div id="navMenu" class="nav-loading">
-                                    <font face="Arial" size="2">
+                                    <font face="Arial" size="2" color="#CCCCCC">
                                         Завантаження структури...
                                     </font>
                                 </div>
                             </td>
                         </tr>
                         <tr>
-                            <td bgcolor="#DEDEDE">
-                                <font face="Arial" size="2"><b>Пошук</b></font>
+                            <td bgcolor="#333333">
+                                <font face="Arial" size="2" color="#CCCCCC"><b>Пошук</b></font>
                             </td>
                         </tr>
                         <tr>
@@ -92,13 +92,13 @@
                             </td>
                         </tr>
                         <tr>
-                            <td bgcolor="#DEDEDE">
-                                <font face="Arial" size="2"><b>Інструменти</b></font>
+                            <td bgcolor="#333333">
+                                <font face="Arial" size="2" color="#CCCCCC"><b>Інструменти</b></font>
                             </td>
                         </tr>
                         <tr>
                             <td>
-                                <font face="Arial" size="2">
+                                <font face="Arial" size="2" color="#CCCCCC">
                                     <a href="#" onclick="scanRepository()">Оновити структуру</a><br>
                                     <a href="https://github.com/pisdukblaty/HoRP-wiKi" target="_blank">Редагувати на GitHub</a>
                                 </font>
@@ -115,7 +115,7 @@
                             <td>
                                 <div id="mainSearch" class="main-content">
                                     <div class="welcome-message">
-                                        <font face="Arial" size="5" color="#0066CC">
+                                        <font face="Arial" size="5" color="#4A90E2">
                                             <b>Ласкаво просимо до HoRP-wiKi!</b>
                                         </font>
                                         <br><br>
@@ -152,10 +152,10 @@
     </table>
 
     <div id="footer">
-        <table width="100%" cellspacing="0" cellpadding="5" border="0" bgcolor="#E6E6FA">
+        <table width="100%" cellspacing="0" cellpadding="5" border="0" bgcolor="#333333">
             <tr>
                 <td align="center">
-                    <font face="Arial" size="1" color="#666666">
+                    <font face="Arial" size="1" color="#888888">
                         HoRP-wiKi © 2000-2024 | Автоматично створена структура<br>
                         <span id="lastUpdate">Останнє оновлення: -</span>
                     </font>
