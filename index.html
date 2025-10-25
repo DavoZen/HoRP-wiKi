@@ -1,127 +1,245 @@
 <!DOCTYPE html>
-<html lang="uk">
+<html lang="uk" data-theme="light">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>HoRP-wiKi - Вільна енциклопедія</title>
     <link rel="stylesheet" href="style.css">
-    <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>📚</text></svg>">
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🌐</text></svg>">
 </head>
 <body>
-    <div class="page-transition"></div>
-    
-    <header class="main-header">
-        <div class="header-content">
-            <div class="logo">
-                <div class="logo-icon">📚</div>
-                <h1>HoRP-wiKi</h1>
+    <div class="page-wrapper">
+        <!-- Header -->
+        <header class="wiki-header">
+            <div class="header-container">
+                <div class="logo-section">
+                    <div class="logo">
+                        <span class="logo-icon">🌐</span>
+                        <h1>HoRP-wiKi</h1>
+                    </div>
+                    <p class="tagline">Вільна енциклопедія</p>
+                </div>
+                
+                <div class="header-controls">
+                    <div class="theme-switcher">
+                        <button class="theme-btn active" data-theme="light">☀️</button>
+                        <button class="theme-btn" data-theme="dark">🌙</button>
+                        <button class="theme-btn" data-theme="auto">⚙️</button>
+                    </div>
+                    <div class="user-menu">
+                        <button class="user-btn">👤</button>
+                    </div>
+                </div>
             </div>
-            <p class="tagline">Вільна енциклопедія, яку може редагувати кожен</p>
-        </div>
-    </header>
+        </header>
 
-    <nav class="main-nav">
-        <div class="nav-container">
-            <div class="nav-section">
-                <a href="#" class="nav-link active" onclick="showSection('main')">Головна</a>
-                <a href="#" class="nav-link" onclick="showSection('all-pages')">Всі сторінки</a>
-                <a href="#" class="nav-link" onclick="showRandomPage()">Випадкова стаття</a>
+        <!-- Navigation -->
+        <nav class="wiki-nav">
+            <div class="nav-container">
+                <div class="nav-main">
+                    <a href="#" class="nav-item active" data-section="main">Головна</a>
+                    <a href="#" class="nav-item" data-section="articles">Статті</a>
+                    <a href="#" class="nav-item" data-section="categories">Категорії</a>
+                    <a href="#" class="nav-item" data-section="random">Випадкова</a>
+                </div>
+                <div class="nav-tools">
+                    <a href="https://github.com/pisdukblaty/HoRP-wiKi" class="nav-item" target="_blank">Редагувати</a>
+                    <a href="https://t.me/hriplinRP" class="nav-item" target="_blank">Telegram</a>
+                </div>
             </div>
-            <div class="nav-section">
-                <a href="https://t.me/hriplinRP" class="nav-link" target="_blank">Telegram</a>
-                <a href="https://sites.google.com/view/hriplin-rp" class="nav-link" target="_blank">Сайт</a>
-                <a href="https://send.monobank.ua/jar/5AL5VGLh1Q" class="nav-link" target="_blank">Підтримка</a>
+        </nav>
+
+        <!-- Search Box -->
+        <div class="search-section">
+            <div class="search-container">
+                <div class="search-box">
+                    <input type="text" id="searchInput" placeholder="Пошук у HoRP-wiKi..." 
+                           onkeypress="handleSearchKeypress(event)">
+                    <button class="search-button" onclick="performSearch()">
+                        <span>🔍</span>
+                    </button>
+                </div>
+                <div class="search-suggestions" id="searchSuggestions"></div>
             </div>
         </div>
-    </nav>
 
-    <main class="main-container">
-        <div class="search-container">
-            <div class="search-box">
-                <input type="text" id="searchInput" placeholder="Пошук у HoRP-wiKi..." 
-                       onkeypress="handleSearchKeypress(event)">
-                <button onclick="performSearch()" class="search-btn">
-                    <span>Пошук</span>
-                </button>
+        <!-- Main Content -->
+        <main class="wiki-main">
+            <div class="main-container">
+                <!-- Sidebar -->
+                <aside class="wiki-sidebar">
+                    <div class="sidebar-section">
+                        <h3>Навігація</h3>
+                        <div class="sidebar-nav" id="sidebarNav">
+                            <div class="loading">Завантаження...</div>
+                        </div>
+                    </div>
+
+                    <div class="sidebar-section">
+                        <h3>Інструменти</h3>
+                        <div class="sidebar-tools">
+                            <a href="#" onclick="refreshData()" class="tool-link">🔄 Оновити</a>
+                            <a href="https://t.me/+JsYNs6vUVIJjZDhi" class="tool-link" target="_blank">💬 Чат</a>
+                            <a href="https://send.monobank.ua/jar/5AL5VGLh1Q" class="tool-link" target="_blank">❤️ Підтримка</a>
+                        </div>
+                    </div>
+
+                    <div class="sidebar-section">
+                        <h3>Статистика</h3>
+                        <div class="stats-widget">
+                            <div class="stat-item">
+                                <span class="stat-number" id="statArticles">0</span>
+                                <span class="stat-label">статей</span>
+                            </div>
+                            <div class="stat-item">
+                                <span class="stat-number" id="statCategories">0</span>
+                                <span class="stat-label">категорій</span>
+                            </div>
+                            <div class="stat-item">
+                                <span class="stat-number" id="statUpdated">сьогодні</span>
+                                <span class="stat-label">оновлено</span>
+                            </div>
+                        </div>
+                    </div>
+                </aside>
+
+                <!-- Content Area -->
+                <div class="content-area">
+                    <!-- Main Page -->
+                    <section id="main-section" class="content-section active">
+                        <div class="welcome-content">
+                            <h2>Ласкаво просимо до HoRP-wiKi</h2>
+                            <p class="welcome-text">Вільна енциклопедія, яку може редагувати кожен. Приєднуйтесь до нашої спільноти!</p>
+                            
+                            <div class="featured-grid">
+                                <div class="featured-card">
+                                    <h3>📚 Популярні статті</h3>
+                                    <div id="popularArticles" class="article-list">
+                                        <div class="loading">Завантаження...</div>
+                                    </div>
+                                </div>
+                                
+                                <div class="featured-card">
+                                    <h3>📂 Категорії</h3>
+                                    <div id="mainCategories" class="category-list">
+                                        <div class="loading">Завантаження...</div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </section>
+
+                    <!-- Articles List -->
+                    <section id="articles-section" class="content-section">
+                        <div class="section-header">
+                            <h1>Всі статті</h1>
+                            <div class="page-count" id="articlesCount"></div>
+                        </div>
+                        <div class="articles-list" id="articlesList">
+                            <div class="loading">Завантаження статей...</div>
+                        </div>
+                    </section>
+
+                    <!-- Categories -->
+                    <section id="categories-section" class="content-section">
+                        <div class="section-header">
+                            <h1>Категорії</h1>
+                        </div>
+                        <div class="categories-grid" id="categoriesGrid">
+                            <div class="loading">Завантаження категорій...</div>
+                        </div>
+                    </section>
+
+                    <!-- Search Results -->
+                    <section id="search-section" class="content-section">
+                        <div class="section-header">
+                            <h1>Результати пошуку</h1>
+                            <div class="search-meta" id="searchMeta"></div>
+                        </div>
+                        <div class="search-results" id="searchResults">
+                            <div class="loading">Пошук...</div>
+                        </div>
+                    </section>
+
+                    <!-- Article Content -->
+                    <section id="article-section" class="content-section">
+                        <nav class="breadcrumbs" id="breadcrumbs">
+                            <a href="#" onclick="showSection('main')">Головна</a>
+                        </nav>
+                        
+                        <article class="wiki-article">
+                            <header class="article-header">
+                                <h1 id="articleTitle">Завантаження...</h1>
+                                <div class="article-meta">
+                                    <span class="last-modified" id="articleModified"></span>
+                                    <span class="article-actions">
+                                        <button onclick="editArticle()" class="action-btn">✏️ Редагувати</button>
+                                        <button onclick="shareArticle()" class="action-btn">📤 Поділитися</button>
+                                    </span>
+                                </div>
+                            </header>
+
+                            <div class="article-content" id="articleContent">
+                                <div class="loading">Завантаження статті...</div>
+                            </div>
+
+                            <footer class="article-footer">
+                                <div class="article-info">
+                                    <div class="info-section">
+                                        <h4>Категорії:</h4>
+                                        <div id="articleCategories"></div>
+                                    </div>
+                                    <div class="info-section">
+                                        <h4>Пов'язані статті:</h4>
+                                        <div id="relatedArticles"></div>
+                                    </div>
+                                </div>
+                            </footer>
+                        </article>
+                    </section>
+                </div>
             </div>
-        </div>
+        </main>
 
-        <div class="content-area">
-            <!-- Головна сторінка -->
-            <section id="main-section" class="content-section active">
-                <div class="welcome-card">
-                    <h2>Ласкаво просимо до HoRP-wiKi</h2>
-                    <p>Спільна енциклопедія громади HoRP. Долучайтеся до редагування та створення нових статей!</p>
+        <!-- Footer -->
+        <footer class="wiki-footer">
+            <div class="footer-container">
+                <div class="footer-content">
+                    <div class="footer-section">
+                        <h4>HoRP-wiKi</h4>
+                        <p>Вільна енциклопедія спільноти HoRP</p>
+                    </div>
                     
-                    <div class="stats-grid">
-                        <div class="stat-item">
-                            <div class="stat-number" id="total-pages">-</div>
-                            <div class="stat-label">Статей</div>
-                        </div>
-                        <div class="stat-item">
-                            <div class="stat-number" id="total-categories">-</div>
-                            <div class="stat-label">Категорій</div>
-                        </div>
-                        <div class="stat-item">
-                            <div class="stat-number" id="last-update">-</div>
-                            <div class="stat-label">Оновлено</div>
+                    <div class="footer-section">
+                        <h4>Проєкт</h4>
+                        <a href="https://github.com/pisdukblaty/HoRP-wiKi" target="_blank">GitHub</a>
+                        <a href="https://sites.google.com/view/hriplin-rp" target="_blank">Офіційний сайт</a>
+                        <a href="#" onclick="showSection('articles')">Всі статті</a>
+                    </div>
+                    
+                    <div class="footer-section">
+                        <h4>Спільнота</h4>
+                        <a href="https://t.me/hriplinRP" target="_blank">Telegram</a>
+                        <a href="https://t.me/+JsYNs6vUVIJjZDhi" target="_blank">Чат</a>
+                        <a href="https://send.monobank.ua/jar/5AL5VGLh1Q" target="_blank">Підтримка</a>
+                    </div>
+                    
+                    <div class="footer-section">
+                        <h4>Статистика</h4>
+                        <div class="footer-stats">
+                            <span id="footerArticles">0 статей</span>
+                            <span id="footerCategories">0 категорій</span>
+                            <span id="footerUpdated">оновлено сьогодні</span>
                         </div>
                     </div>
                 </div>
-
-                <div class="featured-content">
-                    <h3>Популярні категорії</h3>
-                    <div id="categories-list" class="categories-grid">
-                        <!-- Категорії будуть завантажені тут -->
-                    </div>
+                
+                <div class="footer-bottom">
+                    <p>HoRP-wiKi © 2024 | Автоматично оновлювана енциклопедія</p>
                 </div>
-            </section>
-
-            <!-- Всі сторінки -->
-            <section id="all-pages-section" class="content-section">
-                <div class="section-header">
-                    <h2>Всі сторінки</h2>
-                    <div class="pages-count" id="pages-count"></div>
-                </div>
-                <div id="all-pages-list" class="pages-list">
-                    <!-- Сторінки будуть завантажені тут -->
-                </div>
-            </section>
-
-            <!-- Результати пошуку -->
-            <section id="search-section" class="content-section">
-                <div class="section-header">
-                    <h2>Результати пошуку</h2>
-                    <div class="search-info" id="search-info"></div>
-                </div>
-                <div id="search-results" class="pages-list">
-                    <!-- Результати пошуку з'являться тут -->
-                </div>
-            </section>
-
-            <!-- Контент статті -->
-            <section id="article-section" class="content-section">
-                <div class="article-header">
-                    <nav class="breadcrumbs" id="breadcrumbs"></nav>
-                    <h1 id="article-title"></h1>
-                </div>
-                <div id="article-content" class="article-content">
-                    <!-- Контент статті завантажиться тут -->
-                </div>
-            </section>
-        </div>
-    </main>
-
-    <footer class="main-footer">
-        <div class="footer-content">
-            <p>HoRP-wiKi © 2024 | Створено спільнотою</p>
-            <div class="footer-links">
-                <a href="https://github.com/pisdukblaty/HoRP-wiKi" target="_blank">GitHub</a>
-                <a href="https://t.me/+JsYNs6vUVIJjZDhi" target="_blank">Чат</a>
-                <button onclick="refreshData()" class="refresh-btn">Оновити дані</button>
             </div>
-        </div>
-    </footer>
+        </footer>
+    </div>
 
     <script src="script.js"></script>
 </body>
