@@ -1,16 +1,7 @@
 class HoRPWiki {
     constructor() {
-        this.repoOwner = 'pisdukblaty';
-        this.repoName = 'HoRP-wiKi';
-        this.branch = 'main';
-        this.baseUrl = `https://raw.githubusercontent.com/${this.repoOwner}/${this.repoName}/${this.branch}`;
-        this.apiBaseUrl = `https://api.github.com/repos/${this.repoOwner}/${this.repoName}/contents`;
-        
         this.pages = [];
-        this.structure = {};
         this.currentTheme = localStorage.getItem('wiki-theme') || 'light';
-        this.searchIndex = [];
-        
         this.init();
     }
 
@@ -19,7 +10,7 @@ class HoRPWiki {
         
         this.setupTheme();
         this.setupEventListeners();
-        await this.loadData();
+        this.loadTestData(); // Використовуємо тестові дані замість GitHub
         this.updateUI();
         
         console.log('✅ HoRP-wiKi готовий до роботи');
@@ -28,20 +19,9 @@ class HoRPWiki {
     setupTheme() {
         document.documentElement.setAttribute('data-theme', this.currentTheme);
         
-        // Оновлюємо активні кнопки теми
         document.querySelectorAll('.theme-btn').forEach(btn => {
             btn.classList.toggle('active', btn.dataset.theme === this.currentTheme);
         });
-        
-        // Автоматична тема
-        if (this.currentTheme === 'auto') {
-            this.applyAutoTheme();
-        }
-    }
-
-    applyAutoTheme() {
-        const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
-        document.documentElement.setAttribute('data-theme', prefersDark ? 'dark' : 'light');
     }
 
     setupEventListeners() {
@@ -60,7 +40,6 @@ class HoRPWiki {
                 e.preventDefault();
                 this.showSection(item.dataset.section);
                 
-                // Оновлюємо активний стан
                 document.querySelectorAll('.nav-item').forEach(nav => nav.classList.remove('active'));
                 item.classList.add('active');
             });
@@ -69,172 +48,233 @@ class HoRPWiki {
         // Пошук
         const searchInput = document.getElementById('searchInput');
         searchInput.addEventListener('input', (e) => this.handleSearchInput(e.target.value));
-        searchInput.addEventListener('focus', () => this.showSearchSuggestions());
-        searchInput.addEventListener('blur', () => {
-            setTimeout(() => this.hideSearchSuggestions(), 200);
-        });
-
-        // Media query для автоматичної теми
-        window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', () => {
-            if (this.currentTheme === 'auto') {
-                this.applyAutoTheme();
-            }
+        searchInput.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') this.performSearch();
         });
     }
 
-    async loadData() {
-        try {
-            this.showLoading('Завантаження даних...');
-            
-            // Спроба завантажити з кешу
-            if (this.loadFromCache()) {
-                console.log('📂 Дані завантажено з кешу');
-                return;
-            }
-
-            // Завантаження з GitHub
-            await this.scanRepository();
-            this.cacheData();
-            
-        } catch (error) {
-            console.error('❌ Помилка завантаження:', error);
-            this.loadFallbackData();
-        }
-    }
-
-    async scanRepository() {
-        console.log('🔍 Сканування репозиторію...');
+    // Тестові дані
+    loadTestData() {
+        console.log('📝 Завантаження тестових даних...');
         
-        try {
-            const contents = await this.fetchGitHubContents('pages');
-            this.structure = await this.buildStructure(contents, 'pages');
-            this.pages = this.extractPagesFromStructure(this.structure);
-            this.buildSearchIndex();
-            
-            console.log(`✅ Знайдено ${this.pages.length} сторінок`);
-            
-        } catch (error) {
-            console.error('❌ Помилка сканування:', error);
-            throw error;
-        }
-    }
+        this.pages = [
+            {
+                title: 'Головна сторінка',
+                path: 'main',
+                content: `# Ласкаво просимо до HoRP-wiKi
 
-    async fetchGitHubContents(path) {
-        const response = await fetch(`${this.apiBaseUrl}/${path}`);
-        if (!response.ok) throw new Error(`HTTP ${response.status}`);
-        return await response.json();
-    }
+## Що таке HoRP-wiKi?
 
-    async buildStructure(contents, currentPath) {
-        const node = {
-            name: currentPath.split('/').pop() || 'pages',
-            path: currentPath,
-            type: 'folder',
-            children: []
-        };
+Це вільна енциклопедія, створена спільнотою HoRP. Тут ви можете знайти інформацію про різні аспекти нашого проекту.
 
-        for (const item of contents) {
-            if (item.type === 'dir') {
-                try {
-                    const subContents = await this.fetchGitHubContents(item.path);
-                    const subNode = await this.buildStructure(subContents, item.path);
-                    node.children.push(subNode);
-                } catch (error) {
-                    console.error(`❌ Помилка завантаження папки ${item.path}:`, error);
-                }
-            } else if (item.type === 'file' && item.name.endsWith('.md')) {
-                node.children.push({
-                    name: item.name.replace('.md', ''),
-                    path: item.path,
-                    type: 'file',
-                    url: item.download_url,
-                    size: item.size
-                });
+## Основні розділи
+
+- **Програмування** - статті про мови програмування
+- **Наука** - матеріали з фізики, математики, хімії
+- **Історія** - історичні події та факти
+- **Мистецтво** - література, музика, живопис
+
+## Як долучитися?
+
+Кожен може редагувати та доповнювати статті. Для цього:
+1. Натисніть кнопку "Редагувати" на сторінці статті
+2. Внесіть зміни у текст
+3. Збережіть зміни
+
+**Приєднуйтесь до нашої спільноти!**`,
+                category: 'Основне'
+            },
+            {
+                title: 'Python',
+                path: 'programming/python',
+                content: `# Python
+
+Python - це інтерпретована, об'єктно-орієнтована мова програмування високого рівня.
+
+## Особливості
+
+- Простий та зрозумілий синтаксис
+- Динамічна типізація
+- Велика стандартна бібліотека
+- Підтримка різних парадигм програмування
+
+## Приклад коду
+
+\`\`\`python
+def hello_world():
+    print("Привіт, світ!")
+    
+hello_world()
+\`\`\`
+
+## Застосування
+
+- Веб-розробка (Django, Flask)
+- Наука про дані
+- Машинне навчання
+- Автоматизація`,
+                category: 'Програмування'
+            },
+            {
+                title: 'Фізика',
+                path: 'science/physics',
+                content: `# Фізика
+
+Фізика - це природнича наука, що вивчає загальні закони природи.
+
+## Основні розділи
+
+### Механіка
+Вивчає рух тіл та взаємодію між ними.
+
+### Термодинаміка
+Досліджує теплові явища.
+
+### Електромагнетизм
+Вивчає електричні та магнітні явища.
+
+## Важливі закони
+
+- **Закон збереження енергії**
+- **Другий закон Ньютона**
+- **Закон всесвітнього тяжіння**`,
+                category: 'Наука'
+            },
+            {
+                title: 'Україна',
+                path: 'history/ukraine',
+                content: `# Україна
+
+Україна - держава в Східній Європі.
+
+## Історія
+
+### Київська Русь
+Перша східнослов'янська держава з центром у Києві.
+
+### Козацтво
+Вільне військове товариство, що існувало в XVI-XVIII століттях.
+
+### Сучасність
+Незалежність відновлена 24 серпня 1991 року.
+
+## Географія
+
+- **Площа**: 603,628 км²
+- **Населення**: близько 40 мільйонів
+- **Столиця**: Київ`,
+                category: 'Історія'
+            },
+            {
+                title: 'Математика',
+                path: 'science/mathematics',
+                content: `# Математика
+
+Математика - наука про кількість, структуру, простір та зміну.
+
+## Основні галузі
+
+### Алгебра
+Вивчає операції та відношення.
+
+### Геометрія
+Досліджує просторові відношення.
+
+### Аналіз
+Занимається пределами, производными и интегралами.
+
+## Важливі поняття
+
+- Числа
+- Функції
+- Рівняння
+- Теореми`,
+                category: 'Наука'
+            },
+            {
+                title: 'JavaScript',
+                path: 'programming/javascript',
+                content: `# JavaScript
+
+JavaScript - мова програмування для створення інтерактивних веб-сторінок.
+
+## Особливості
+
+- Виконується в браузері
+- Динамічна типізація
+- Подієво-орієнтована
+- Асинхронне програмування
+
+## Синтаксис
+
+\`\`\`javascript
+// Функція привітання
+function greet(name) {
+    return 'Привіт, ' + name + '!';
+}
+
+console.log(greet('світе'));
+\`\`\``,
+                category: 'Програмування'
+            },
+            {
+                title: 'Хімія',
+                path: 'science/chemistry',
+                content: `# Хімія
+
+Хімія - наука про речовини, їх властивості та перетворення.
+
+## Основні розділи
+
+### Органічна хімія
+Вивчає сполуки вуглецю.
+
+### Неорганічна хімія
+Досліджує інші хімічні елементи.
+
+### Фізична хімія
+Застосовує фізичні методи.
+
+## Періодична система
+
+Система хімічних елементів, упорядкована за атомними номерами.`,
+                category: 'Наука'
+            },
+            {
+                title: 'Література',
+                path: 'art/literature',
+                content: `# Література
+
+Література - мистецтво слова, що відображає життя за допомогою мови.
+
+## Жанри
+
+### Поезія
+Віршовані твори з ритмом та римою.
+
+### Проза
+Оповідні твори без віршованої форми.
+
+### Драма
+Твори, призначені для сценічного виконання.
+
+## Українська література
+
+Багата спадщина від "Слова о полку Ігоревім" до сучасних авторів.`,
+                category: 'Мистецтво'
             }
-        }
+        ];
 
-        return node;
-    }
-
-    extractPagesFromStructure(structure) {
-        const pages = [];
-        
-        function traverse(node) {
-            if (node.type === 'file') {
-                const pagePath = node.path.replace('pages/', '').replace('.md', '');
-                pages.push({
-                    title: node.name,
-                    path: pagePath,
-                    url: node.url,
-                    size: node.size,
-                    category: this.getCategoryFromPath(pagePath)
-                });
-            } else if (node.children) {
-                node.children.forEach(traverse.bind(this));
-            }
-        }
-        
-        traverse.call(this, structure);
-        return pages;
-    }
-
-    getCategoryFromPath(path) {
-        const parts = path.split('/');
-        return parts.length > 1 ? parts[0] : 'Інше';
-    }
-
-    buildSearchIndex() {
-        this.searchIndex = this.pages.map(page => ({
-            title: page.title.toLowerCase(),
-            path: page.path.toLowerCase(),
-            category: page.category.toLowerCase(),
-            page: page
-        }));
+        console.log(`✅ Завантажено ${this.pages.length} тестових сторінок`);
     }
 
     // Пошук
     handleSearchInput(query) {
-        if (query.length === 0) {
-            this.hideSearchSuggestions();
-            return;
-        }
-
-        if (query.length < 2) {
-            this.showSearchSuggestions(['Введіть щонайменше 2 символи...']);
-            return;
-        }
-
-        const suggestions = this.searchPages(query, 5);
-        this.showSearchSuggestions(suggestions);
+        if (query.length < 2) return;
+        this.performSearch(query);
     }
 
-    searchPages(query, limit = 50) {
-        const lowerQuery = query.toLowerCase();
-        const results = [];
-
-        // Пошук в назвах (вищий пріоритет)
-        const titleResults = this.pages.filter(page => 
-            page.title.toLowerCase().includes(lowerQuery)
-        ).slice(0, limit);
-
-        // Пошук в шляхах
-        const pathResults = this.pages.filter(page => 
-            page.path.toLowerCase().includes(lowerQuery) &&
-            !titleResults.includes(page)
-        ).slice(0, limit - titleResults.length);
-
-        // Пошук в категоріях
-        const categoryResults = this.pages.filter(page => 
-            page.category.toLowerCase().includes(lowerQuery) &&
-            !titleResults.includes(page) &&
-            !pathResults.includes(page)
-        ).slice(0, limit - titleResults.length - pathResults.length);
-
-        // Об'єднання результатів
-        return [...titleResults, ...pathResults, ...categoryResults];
-    }
-
-    async performSearch(query = null) {
+    performSearch(query = null) {
         const searchQuery = query || document.getElementById('searchInput').value.trim();
         
         if (!searchQuery) {
@@ -243,13 +283,18 @@ class HoRPWiki {
         }
 
         this.showSection('search');
-        this.showLoading('Пошук...', 'searchResults');
-
-        // Імітація затримки пошуку
-        await new Promise(resolve => setTimeout(resolve, 300));
-
+        
         const results = this.searchPages(searchQuery);
         this.displaySearchResults(results, searchQuery);
+    }
+
+    searchPages(query) {
+        const lowerQuery = query.toLowerCase();
+        return this.pages.filter(page => 
+            page.title.toLowerCase().includes(lowerQuery) ||
+            page.content.toLowerCase().includes(lowerQuery) ||
+            page.category.toLowerCase().includes(lowerQuery)
+        );
     }
 
     displaySearchResults(results, query) {
@@ -274,6 +319,7 @@ class HoRPWiki {
                 <h3>${this.highlightText(result.title, query)}</h3>
                 <div class="search-path">${result.path}</div>
                 <div class="search-category">Категорія: ${result.category}</div>
+                <div class="search-excerpt">${this.generateExcerpt(result.content, query)}</div>
             </div>
         `).join('');
     }
@@ -283,44 +329,30 @@ class HoRPWiki {
         return text.replace(regex, '<mark>$1</mark>');
     }
 
+    generateExcerpt(content, query) {
+        const index = content.toLowerCase().indexOf(query.toLowerCase());
+        if (index === -1) return content.substring(0, 150) + '...';
+        
+        const start = Math.max(0, index - 50);
+        const end = Math.min(content.length, index + 100);
+        let excerpt = content.substring(start, end);
+        
+        const regex = new RegExp(`(${this.escapeRegex(query)})`, 'gi');
+        excerpt = excerpt.replace(regex, '<mark>$1</mark>');
+        
+        return (start > 0 ? '...' : '') + excerpt + (end < content.length ? '...' : '');
+    }
+
     escapeRegex(string) {
         return string.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
     }
 
-    showSearchSuggestions(suggestions) {
-        const container = document.getElementById('searchSuggestions');
-        
-        if (!suggestions || suggestions.length === 0) {
-            container.style.display = 'none';
-            return;
-        }
-
-        if (typeof suggestions[0] === 'string') {
-            container.innerHTML = `<div class="search-suggestion">${suggestions[0]}</div>`;
-        } else {
-            container.innerHTML = suggestions.map(page => `
-                <div class="search-suggestion" onclick="wiki.loadPage('${page.path}')">
-                    ${page.title} <small>(${page.category})</small>
-                </div>
-            `).join('');
-        }
-        
-        container.style.display = 'block';
-    }
-
-    hideSearchSuggestions() {
-        const container = document.getElementById('searchSuggestions');
-        container.style.display = 'none';
-    }
-
     // Навігація
     showSection(sectionName) {
-        // Приховуємо всі секції
         document.querySelectorAll('.content-section').forEach(section => {
             section.classList.remove('active');
         });
 
-        // Показуємо потрібну секцію
         const targetSection = document.getElementById(`${sectionName}-section`);
         if (targetSection) {
             targetSection.classList.add('active');
@@ -339,9 +371,6 @@ class HoRPWiki {
             case 'categories':
                 this.updateCategoriesPage();
                 break;
-            case 'search':
-                // Контент оновлюється при пошуку
-                break;
         }
     }
 
@@ -352,7 +381,7 @@ class HoRPWiki {
 
     updatePopularArticles() {
         const container = document.getElementById('popularArticles');
-        const popular = this.pages.slice(0, 8); // Перші 8 як популярні
+        const popular = this.pages.slice(0, 8);
         
         container.innerHTML = popular.map(page => `
             <a href="#" class="article-link" onclick="wiki.loadPage('${page.path}')">${page.title}</a>
@@ -418,15 +447,12 @@ class HoRPWiki {
     }
 
     showCategory(categoryName) {
-        const categoryPages = this.pages.filter(page => page.category === categoryName);
-        // Можна реалізувати сторінку категорії
         this.showSection('articles');
     }
 
     // Завантаження статті
-    async loadPage(pagePath) {
+    loadPage(pagePath) {
         this.showSection('article');
-        this.showLoading('Завантаження статті...', 'articleContent');
 
         const page = this.pages.find(p => p.path === pagePath);
         if (!page) {
@@ -434,34 +460,18 @@ class HoRPWiki {
             return;
         }
 
-        try {
-            const response = await fetch(page.url);
-            if (!response.ok) throw new Error('Не вдалося завантажити статтю');
-            
-            const content = await response.text();
-            this.displayArticle(page, content);
-            
-        } catch (error) {
-            console.error('❌ Помилка завантаження статті:', error);
-            this.showError('Помилка завантаження статті', 'articleContent');
-        }
+        this.displayArticle(page);
     }
 
-    displayArticle(page, content) {
-        // Оновлюємо заголовок
+    displayArticle(page) {
         document.getElementById('articleTitle').textContent = page.title;
-        
-        // Оновлюємо хлібні крихти
         this.updateBreadcrumbs(page);
         
-        // Оновлюємо мета-інформацію
         document.getElementById('articleModified').textContent = `Востаннє редагувалося: ${new Date().toLocaleDateString('uk-UA')}`;
         
-        // Конвертуємо та відображаємо контент
-        const htmlContent = this.convertMarkdownToHtml(content);
+        const htmlContent = this.convertMarkdownToHtml(page.content);
         document.getElementById('articleContent').innerHTML = htmlContent;
         
-        // Оновлюємо додаткову інформацію
         this.updateArticleInfo(page);
     }
 
@@ -492,26 +502,15 @@ class HoRPWiki {
             .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
             .replace(/\*(.*?)\*/g, '<em>$1</em>')
             .replace(/`(.*?)`/g, '<code>$1</code>')
-            .replace(/!\[(.*?)\]\((.*?)\)/g, '<img src="$2" alt="$1" loading="lazy">')
-            .replace(/\[(.*?)\]\((.*?)\)/g, '<a href="$2" target="_blank">$1</a>')
-            .replace(/\[\[(.*?)\]\]/g, (match, pageName) => {
-                const foundPage = this.pages.find(p => p.title === pageName || p.path === pageName);
-                return foundPage ? 
-                    `<a href="#" onclick="wiki.loadPage('${foundPage.path}')">${pageName}</a>` :
-                    `<span class="broken-link" title="Стаття не знайдена">${pageName}</span>`;
-            })
-            .replace(/^- (.*$)/gim, '<li>$1</li>')
-            .replace(/(<li>.*<\/li>)/s, '<ul>$1</ul>')
+            .replace(/```(\w+)?\n([\s\S]*?)```/g, '<pre><code>$2</code></pre>')
             .replace(/\n\n/g, '</p><p>')
             .replace(/\n/g, '<br>');
     }
 
     updateArticleInfo(page) {
-        // Категорії
         const categories = document.getElementById('articleCategories');
         categories.innerHTML = `<a href="#" onclick="wiki.showCategory('${page.category}')">${page.category}</a>`;
 
-        // Пов'язані статті
         const related = this.getRelatedArticles(page);
         const relatedContainer = document.getElementById('relatedArticles');
         relatedContainer.innerHTML = related.map(rel => `
@@ -520,20 +519,9 @@ class HoRPWiki {
     }
 
     getRelatedArticles(page) {
-        // Спрощена логіка для пов'язаних статей
         return this.pages
             .filter(p => p.category === page.category && p.path !== page.path)
             .slice(0, 5);
-    }
-
-    // Допоміжні методи
-    showLoading(message, elementId = null) {
-        const target = elementId ? document.getElementById(elementId) : 
-            document.querySelector('.content-section.active');
-        
-        if (target) {
-            target.innerHTML = `<div class="loading">${message}</div>`;
-        }
     }
 
     showError(message, elementId = null) {
@@ -562,91 +550,24 @@ class HoRPWiki {
         document.getElementById('statCategories').textContent = this.getCategoriesWithCounts().length;
         document.getElementById('statUpdated').textContent = 'сьогодні';
         
-        // Футер
         document.getElementById('footerArticles').textContent = `${this.pages.length} статей`;
         document.getElementById('footerCategories').textContent = `${this.getCategoriesWithCounts().length} категорій`;
     }
 
     updateSidebar() {
         const container = document.getElementById('sidebarNav');
-        container.innerHTML = this.buildSidebarNavigation();
-    }
-
-    buildSidebarNavigation() {
-        // Спрощена навігація по категоріям
         const categories = this.getCategoriesWithCounts();
         
-        return categories.map(cat => `
+        container.innerHTML = categories.map(cat => `
             <a href="#" class="nav-link" onclick="wiki.showCategory('${cat.name}')">
                 ${cat.name} <small>(${cat.count})</small>
             </a>
         `).join('');
     }
 
-    // Кешування
-    cacheData() {
-        const cache = {
-            pages: this.pages,
-            structure: this.structure,
-            timestamp: Date.now()
-        };
-        localStorage.setItem('wikiCache', JSON.stringify(cache));
-    }
-
-    loadFromCache() {
-        const cached = localStorage.getItem('wikiCache');
-        if (cached) {
-            try {
-                const cache = JSON.parse(cached);
-                // Перевірка актуальності кешу (12 годин)
-                if (Date.now() - cache.timestamp < 12 * 60 * 60 * 1000) {
-                    this.pages = cache.pages;
-                    this.structure = cache.structure;
-                    this.buildSearchIndex();
-                    return true;
-                }
-            } catch (error) {
-                console.error('❌ Помилка завантаження кешу:', error);
-            }
-        }
-        return false;
-    }
-
-    loadFallbackData() {
-        console.log('🔄 Завантаження тестових даних...');
-        this.pages = [
-            {
-                title: 'Головна сторінка',
-                path: 'main',
-                url: `${this.baseUrl}/pages/main.md`,
-                size: 1024,
-                category: 'Основне'
-            },
-            {
-                title: 'Python програмування',
-                path: 'programming/python',
-                url: `${this.baseUrl}/pages/programming/python.md`,
-                size: 2048,
-                category: 'Програмування'
-            },
-            {
-                title: 'Фізика для початківців',
-                path: 'science/physics',
-                url: `${this.baseUrl}/pages/science/physics.md`,
-                size: 1536,
-                category: 'Наука'
-            }
-        ];
-        this.buildSearchIndex();
-        this.updateUI();
-    }
-
     // Додаткові функції
     editArticle() {
-        const currentPage = this.pages.find(p => p.title === document.getElementById('articleTitle').textContent);
-        if (currentPage) {
-            window.open(`https://github.com/${this.repoOwner}/${this.repoName}/edit/main/pages/${currentPage.path}.md`, '_blank');
-        }
+        alert('Функція редагування буде доступна після підключення до GitHub');
     }
 
     shareArticle() {
@@ -691,6 +612,5 @@ function showRandomPage() {
 }
 
 function refreshData() {
-    localStorage.removeItem('wikiCache');
     window.location.reload();
 }
