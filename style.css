@@ -1,96 +1,319 @@
-/* HoRP-wiKi - Стиль 2000-х з сучасними анімаціями */
-
-body {
-    background-color: #FFFFFF;
-    background-image: url('images/background.jpg');
-    background-repeat: repeat;
+/* HoRP-wiKi - Темна тема у стилі 2000-х */
+* {
     margin: 0;
     padding: 0;
+    box-sizing: border-box;
+}
+
+body.dark-theme {
+    background-color: #121212;
+    color: #E0E0E0;
     font-family: Arial, Helvetica, sans-serif;
     font-size: 12px;
-    color: #000000;
-    animation: fadeIn 1s ease-in;
+    line-height: 1.4;
 }
 
-@keyframes fadeIn {
-    from { opacity: 0; }
-    to { opacity: 1; }
-}
-
-/* Логотип з анімацією */
-.logo-container {
-    padding: 10px;
-    text-align: center;
-}
-
-.logo {
-    border: 2px solid #0066CC;
-    padding: 5px;
-    background: white;
-    transition: all 0.3s ease;
-}
-
-.logo:hover {
-    transform: scale(1.05);
-    box-shadow: 0 0 15px rgba(0,102,204,0.5);
-}
-
-/* Основні стилі */
 table {
     border-collapse: collapse;
-    animation: slideIn 0.5s ease-out;
-}
-
-@keyframes slideIn {
-    from { transform: translateY(-10px); opacity: 0; }
-    to { transform: translateY(0); opacity: 1; }
 }
 
 td {
     vertical-align: top;
 }
 
+/* Хедер */
 #header {
     border-bottom: 2px solid #0066CC;
-    animation: headerSlide 0.8s ease-out;
 }
 
-@keyframes headerSlide {
-    from { transform: translateY(-100%); }
-    to { transform: translateY(0); }
-}
-
+/* Навігаційна панель */
 #navbar {
-    border-bottom: 1px solid #CCCCCC;
-    border-top: 1px solid #CCCCCC;
+    border-bottom: 1px solid #444444;
+    border-top: 1px solid #444444;
 }
 
+/* Бічна панель */
 #sidebar {
-    border-right: 1px solid #CCCCCC;
+    border-right: 1px solid #444444;
     min-height: 100vh;
 }
 
-/* Навігація */
+/* Посилання */
+a {
+    color: #4A90E2;
+    text-decoration: none;
+}
+
+a:hover {
+    color: #6BAEF2;
+    text-decoration: underline;
+}
+
+/* Форми та інпути */
+input, textarea, select {
+    font-family: Arial, Helvetica, sans-serif;
+    font-size: 11px;
+    border: 1px solid #555555;
+    background-color: #2A2A2A;
+    color: #E0E0E0;
+    padding: 4px;
+}
+
+input[type="submit"], input[type="button"] {
+    background-color: #333333;
+    border: 1px solid #555555;
+    color: #E0E0E0;
+    cursor: pointer;
+    padding: 4px 8px;
+}
+
+input[type="submit"]:hover, input[type="button"]:hover {
+    background-color: #444444;
+}
+
+/* Контент статті */
+.article-content {
+    font-family: Arial, Helvetica, sans-serif;
+    line-height: 1.4;
+    color: #E0E0E0;
+}
+
+.article-content h1 {
+    color: #4A90E2;
+    font-size: 18px;
+    border-bottom: 1px solid #444444;
+    padding-bottom: 5px;
+    margin-bottom: 15px;
+}
+
+.article-content h2 {
+    color: #4A90E2;
+    font-size: 16px;
+    margin-top: 20px;
+    margin-bottom: 10px;
+}
+
+.article-content h3 {
+    color: #4A90E2;
+    font-size: 14px;
+    margin-top: 15px;
+    margin-bottom: 8px;
+}
+
+.article-content p {
+    margin: 10px 0;
+    text-align: justify;
+}
+
+.article-content ul, .article-content ol {
+    margin: 10px 0 10px 20px;
+}
+
+.article-content li {
+    margin: 5px 0;
+}
+
+.article-content code {
+    background-color: #2A2A2A;
+    padding: 1px 3px;
+    font-family: "Courier New", monospace;
+    border: 1px solid #444444;
+}
+
+.article-content pre {
+    background-color: #2A2A2A;
+    border: 1px solid #444444;
+    padding: 10px;
+    overflow: auto;
+    font-family: "Courier New", monospace;
+    font-size: 11px;
+    margin: 10px 0;
+}
+
+.article-content blockquote {
+    background-color: #2A2A2A;
+    border-left: 3px solid #4A90E2;
+    margin: 10px 0;
+    padding: 10px 15px;
+}
+
+.article-content table {
+    border: 1px solid #444444;
+    margin: 10px 0;
+}
+
+.article-content th {
+    background-color: #333333;
+    padding: 5px;
+    border: 1px solid #444444;
+    font-weight: bold;
+}
+
+.article-content td {
+    padding: 5px;
+    border: 1px solid #444444;
+}
+
+.article-content img {
+    border: 1px solid #444444;
+    margin: 5px;
+    max-width: 100%;
+}
+
+/* Результати пошуку */
+.search-result {
+    margin: 10px 0;
+    padding: 10px;
+    background-color: #2A2A2A;
+    border: 1px solid #444444;
+}
+
+.search-result h3 {
+    margin: 0 0 5px 0;
+    color: #4A90E2;
+}
+
+.search-result .excerpt {
+    color: #AAAAAA;
+    font-size: 11px;
+}
+
+/* Навігація в статті */
+.article-nav {
+    background-color: #2A2A2A;
+    border: 1px solid #444444;
+    padding: 10px;
+    margin: 10px 0;
+    font-size: 11px;
+}
+
+/* Футер */
+#footer {
+    border-top: 2px solid #444444;
+    margin-top: 20px;
+}
+
+/* Завантаження */
 .nav-loading {
-    color: #666;
+    color: #888888;
     font-style: italic;
 }
 
+.loading {
+    text-align: center;
+    padding: 40px;
+    color: #888888;
+}
+
+.loading::after {
+    content: "";
+    animation: loadingDots 1.5s infinite;
+}
+
+@keyframes loadingDots {
+    0%, 20% { content: "."; }
+    40% { content: ".."; }
+    60%, 100% { content: "..."; }
+}
+
+/* Головна сторінка */
+.welcome-message {
+    text-align: center;
+    padding: 40px 20px;
+}
+
+.search-container {
+    margin: 20px 0;
+}
+
+.search-container input[type="text"] {
+    font-size: 14px;
+    padding: 8px;
+    width: 400px;
+    max-width: 80%;
+}
+
+.search-container input[type="submit"] {
+    font-size: 14px;
+    padding: 8px 16px;
+}
+
+.quick-stats {
+    background-color: #2A2A2A;
+    border: 1px solid #444444;
+    padding: 15px;
+    display: inline-block;
+}
+
+/* Приховані елементи */
+.hidden {
+    display: none;
+}
+
+/* Підказки пошуку */
+.search-suggestions {
+    position: absolute;
+    background: #2A2A2A;
+    border: 1px solid #444444;
+    max-height: 200px;
+    overflow-y: auto;
+    z-index: 1000;
+    width: 200px;
+}
+
+.suggestion-item {
+    padding: 8px 12px;
+    cursor: pointer;
+    border-bottom: 1px solid #444444;
+}
+
+.suggestion-item:hover {
+    background-color: #333333;
+}
+
+/* Статистика */
+.stats-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 15px;
+    margin: 20px 0;
+}
+
+.stat-card {
+    background-color: #2A2A2A;
+    border: 1px solid #444444;
+    padding: 15px;
+    text-align: center;
+}
+
+.stat-number {
+    font-size: 24px;
+    font-weight: bold;
+    color: #4A90E2;
+    display: block;
+}
+
+.stat-label {
+    color: #888888;
+    font-size: 12px;
+    margin-top: 8px;
+}
+
+/* Навігація */
 .nav-item {
     padding: 3px 0;
-    transition: all 0.2s ease;
     border-left: 3px solid transparent;
 }
 
 .nav-item:hover {
-    border-left-color: #0066CC;
-    background-color: #F0F0F0;
+    border-left-color: #4A90E2;
+    background-color: #333333;
     padding-left: 5px;
 }
 
 .nav-folder {
     font-weight: bold;
-    color: #0066CC;
+    color: #4A90E2;
     cursor: pointer;
     user-select: none;
 }
@@ -103,308 +326,10 @@ td {
     content: "📄 ";
 }
 
-/* Контент */
-.main-content {
-    animation: contentAppear 0.5s ease-out;
-}
-
-@keyframes contentAppear {
-    from { opacity: 0; transform: translateX(20px); }
-    to { opacity: 1; transform: translateX(0); }
-}
-
-.hidden {
-    display: none;
-}
-
-.welcome-message {
-    text-align: center;
-    padding: 40px 20px;
-}
-
-.search-container {
-    margin: 20px 0;
-}
-
-.search-container input[type="text"] {
-    font-size: 16px;
-    padding: 10px;
-    border: 2px solid #0066CC;
-    border-radius: 5px;
-    transition: all 0.3s ease;
-    width: 300px;
-}
-
-.search-container input[type="text"]:focus {
-    outline: none;
-    box-shadow: 0 0 10px rgba(0,102,204,0.3);
-    transform: scale(1.02);
-}
-
-.search-container input[type="submit"] {
-    font-size: 16px;
-    padding: 10px 20px;
-    background: #0066CC;
-    color: white;
-    border: none;
-    border-radius: 5px;
-    cursor: pointer;
-    transition: all 0.3s ease;
-}
-
-.search-container input[type="submit"]:hover {
-    background: #0055AA;
-    transform: translateY(-2px);
-}
-
-/* Стаття */
-.article-content {
-    font-family: Arial, Helvetica, sans-serif;
-    line-height: 1.6;
-    animation: articleLoad 0.6s ease-out;
-}
-
-@keyframes articleLoad {
-    from { opacity: 0; transform: translateY(20px); }
-    to { opacity: 1; transform: translateY(0); }
-}
-
-.article-content h1 {
-    color: #0066CC;
-    font-size: 24px;
-    border-bottom: 2px solid #CCCCCC;
-    padding-bottom: 10px;
-    margin-bottom: 20px;
-    animation: titleSlide 0.5s ease-out;
-}
-
-@keyframes titleSlide {
-    from { transform: translateX(-50px); opacity: 0; }
-    to { transform: translateX(0); opacity: 1; }
-}
-
-.article-content h2 {
-    color: #0066CC;
-    font-size: 20px;
-    margin: 25px 0 15px 0;
-    border-left: 4px solid #0066CC;
+.folder-contents {
+    margin-left: 15px;
+    border-left: 2px dotted #444444;
     padding-left: 10px;
-}
-
-.article-content h3 {
-    color: #0066CC;
-    font-size: 16px;
-    margin: 20px 0 10px 0;
-}
-
-.article-content p {
-    margin: 15px 0;
-    text-align: justify;
-    animation: paragraphAppear 0.8s ease-out;
-}
-
-@keyframes paragraphAppear {
-    from { opacity: 0; transform: translateY(10px); }
-    to { opacity: 1; transform: translateY(0); }
-}
-
-.article-content ul, .article-content ol {
-    margin: 15px 0 15px 30px;
-}
-
-.article-content li {
-    margin: 8px 0;
-    animation: listItemAppear 0.5s ease-out;
-}
-
-@keyframes listItemAppear {
-    from { opacity: 0; transform: translateX(-20px); }
-    to { opacity: 1; transform: translateX(0); }
-}
-
-.article-content code {
-    background-color: #F0F0F0;
-    padding: 2px 6px;
-    border-radius: 3px;
-    font-family: "Courier New", monospace;
-    border: 1px solid #DDD;
-}
-
-.article-content pre {
-    background-color: #F8F8FF;
-    border: 1px solid #CCCCCC;
-    padding: 15px;
-    overflow: auto;
-    font-family: "Courier New", monospace;
-    font-size: 12px;
-    border-radius: 5px;
-    animation: codeBlockAppear 0.5s ease-out;
-}
-
-@keyframes codeBlockAppear {
-    from { opacity: 0; transform: scale(0.95); }
-    to { opacity: 1; transform: scale(1); }
-}
-
-.article-content img {
-    border: 1px solid #CCCCCC;
-    margin: 10px;
-    max-width: 100%;
-    transition: all 0.3s ease;
-}
-
-.article-content img:hover {
-    transform: scale(1.02);
-    box-shadow: 0 5px 15px rgba(0,0,0,0.2);
-}
-
-/* Навігація статті */
-.article-nav {
-    background-color: #F0F0F0;
-    border: 1px solid #CCCCCC;
-    padding: 15px;
-    margin: 20px 0;
-    border-radius: 5px;
-    animation: navAppear 0.4s ease-out;
-}
-
-@keyframes navAppear {
-    from { opacity: 0; transform: translateY(-10px); }
-    to { opacity: 1; transform: translateY(0); }
-}
-
-/* Результати пошуку */
-.search-result {
-    margin: 15px 0;
-    padding: 15px;
-    background-color: #F8F8FF;
-    border: 1px solid #CCCCCC;
-    border-radius: 5px;
-    transition: all 0.3s ease;
-    animation: searchResultAppear 0.5s ease-out;
-}
-
-@keyframes searchResultAppear {
-    from { opacity: 0; transform: translateY(10px); }
-    to { opacity: 1; transform: translateY(0); }
-}
-
-.search-result:hover {
-    background-color: #E6E6FA;
-    transform: translateX(5px);
-    box-shadow: 0 3px 10px rgba(0,0,0,0.1);
-}
-
-.search-result h3 {
-    margin: 0 0 8px 0;
-    color: #0066CC;
-}
-
-.search-result .excerpt {
-    color: #666666;
-    font-size: 12px;
-    line-height: 1.4;
-}
-
-/* Підказки пошуку */
-.search-suggestions {
-    position: absolute;
-    background: white;
-    border: 1px solid #CCC;
-    max-height: 200px;
-    overflow-y: auto;
-    z-index: 1000;
-    width: 200px;
-    box-shadow: 0 3px 10px rgba(0,0,0,0.2);
-    animation: suggestionsAppear 0.2s ease-out;
-}
-
-@keyframes suggestionsAppear {
-    from { opacity: 0; transform: translateY(-10px); }
-    to { opacity: 1; transform: translateY(0); }
-}
-
-.suggestion-item {
-    padding: 8px 12px;
-    cursor: pointer;
-    border-bottom: 1px solid #EEE;
-    transition: background-color 0.2s ease;
-}
-
-.suggestion-item:hover {
-    background-color: #E6E6FA;
-}
-
-/* Статистика */
-.quick-stats {
-    background: #F8F8FF;
-    border: 1px solid #CCCCCC;
-    padding: 15px;
-    border-radius: 5px;
-    display: inline-block;
-    animation: statsPulse 2s infinite;
-}
-
-@keyframes statsPulse {
-    0%, 100% { transform: scale(1); }
-    50% { transform: scale(1.02); }
-}
-
-.stats-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-    gap: 15px;
-    margin: 20px 0;
-}
-
-.stat-card {
-    background: white;
-    border: 1px solid #CCC;
-    padding: 15px;
-    border-radius: 5px;
-    text-align: center;
-    transition: all 0.3s ease;
-    animation: statCardAppear 0.6s ease-out;
-}
-
-@keyframes statCardAppear {
-    from { opacity: 0; transform: scale(0.8); }
-    to { opacity: 1; transform: scale(1); }
-}
-
-.stat-card:hover {
-    transform: translateY(-5px);
-    box-shadow: 0 5px 15px rgba(0,0,0,0.1);
-}
-
-.stat-number {
-    font-size: 24px;
-    font-weight: bold;
-    color: #0066CC;
-    display: block;
-}
-
-.stat-label {
-    font-size: 12px;
-    color: #666;
-}
-
-/* Завантаження */
-.loading {
-    text-align: center;
-    padding: 40px;
-    color: #666;
-}
-
-.loading::after {
-    content: "";
-    animation: loadingDots 1.5s infinite;
-}
-
-@keyframes loadingDots {
-    0%, 20% { content: "."; }
-    40% { content: ".."; }
-    60%, 100% { content: "..."; }
 }
 
 /* Адаптивність */
@@ -424,24 +349,7 @@ td {
 
 /* Спеціальні ефекти */
 .highlight {
-    background-color: #FFFF88;
+    background-color: #555500;
     padding: 2px 4px;
     border-radius: 2px;
-    animation: highlightPulse 1s ease;
-}
-
-@keyframes highlightPulse {
-    0% { background-color: #FFFF88; }
-    50% { background-color: #FFFF00; }
-    100% { background-color: #FFFF88; }
-}
-
-.folder-contents {
-    margin-left: 20px;
-    animation: folderOpen 0.3s ease-out;
-}
-
-@keyframes folderOpen {
-    from { opacity: 0; max-height: 0; }
-    to { opacity: 1; max-height: 1000px; }
 }
