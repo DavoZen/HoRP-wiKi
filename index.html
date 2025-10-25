@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html lang="uk">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Моя Вікіпедія</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <header>
+        <div class="container">
+            <h1><a href="index.html">🏠 Моя Вікіпедія</a></h1>
+            <div class="search-box">
+                <input type="text" id="searchInput" placeholder="🔍 Пошук статтей...">
+                <div id="searchResults" class="search-results"></div>
+            </div>
+        </div>
+    </header>
+
+    <nav class="sidebar">
+        <div class="nav-content">
+            <h3>🌍 Категорії</h3>
+            <ul id="navMenu">
+                <li><a href="#" onclick="loadPage('home')">Головна</a></li>
+                <li>
+                    <details>
+                        <summary>💻 Програмування</summary>
+                        <ul>
+                            <li><a href="#" onclick="loadPage('programming/index')">Вступ</a></li>
+                            <li><a href="#" onclick="loadPage('programming/python')">Python</a></li>
+                            <li><a href="#" onclick="loadPage('programming/web-development')">Веб-розробка</a></li>
+                        </ul>
+                    </details>
+                </li>
+                <li>
+                    <details>
+                        <summary>🔬 Наука</summary>
+                        <ul>
+                            <li><a href="#" onclick="loadPage('science/index')">Вступ</a></li>
+                            <li><a href="#" onclick="loadPage('science/physics')">Фізика</a></li>
+                        </ul>
+                    </details>
+                </li>
+                <li>
+                    <details>
+                        <summary>📜 Історія</summary>
+                        <ul>
+                            <li><a href="#" onclick="loadPage('history/index')">Вступ</a></li>
+                            <li><a href="#" onclick="loadPage('history/ancient-rome')">Стародавній Рим</a></li>
+                        </ul>
+                    </details>
+                </li>
+            </ul>
+        </div>
+    </nav>
+
+    <main class="content">
+        <div id="loading">Завантаження...</div>
+        <article id="contentArea">
+            <!-- Контент завантажиться тут -->
+        </article>
+    </main>
+
+    <footer>
+        <div class="container">
+            <p>© 2024 Моя Вікіпедія. Всі права захищені.</p>
+            <p>Створено за допомогою GitHub Pages</p>
+        </div>
+    </footer>
+
+    <script src="script.js"></script>
+</body>
+</html>
