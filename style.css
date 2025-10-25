@@ -1,231 +1,447 @@
-* {
-    margin: 0;
-    padding: 0;
-    box-sizing: border-box;
-}
+/* HoRP-wiKi - Стиль 2000-х з сучасними анімаціями */
 
 body {
-    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-    line-height: 1.6;
-    color: #333;
-    display: grid;
-    grid-template-areas: 
-        "header header"
-        "sidebar content"
-        "footer footer";
-    grid-template-columns: 250px 1fr;
-    grid-template-rows: auto 1fr auto;
+    background-color: #FFFFFF;
+    background-image: url('images/background.jpg');
+    background-repeat: repeat;
+    margin: 0;
+    padding: 0;
+    font-family: Arial, Helvetica, sans-serif;
+    font-size: 12px;
+    color: #000000;
+    animation: fadeIn 1s ease-in;
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
+}
+
+/* Логотип з анімацією */
+.logo-container {
+    padding: 10px;
+    text-align: center;
+}
+
+.logo {
+    border: 2px solid #0066CC;
+    padding: 5px;
+    background: white;
+    transition: all 0.3s ease;
+}
+
+.logo:hover {
+    transform: scale(1.05);
+    box-shadow: 0 0 15px rgba(0,102,204,0.5);
+}
+
+/* Основні стилі */
+table {
+    border-collapse: collapse;
+    animation: slideIn 0.5s ease-out;
+}
+
+@keyframes slideIn {
+    from { transform: translateY(-10px); opacity: 0; }
+    to { transform: translateY(0); opacity: 1; }
+}
+
+td {
+    vertical-align: top;
+}
+
+#header {
+    border-bottom: 2px solid #0066CC;
+    animation: headerSlide 0.8s ease-out;
+}
+
+@keyframes headerSlide {
+    from { transform: translateY(-100%); }
+    to { transform: translateY(0); }
+}
+
+#navbar {
+    border-bottom: 1px solid #CCCCCC;
+    border-top: 1px solid #CCCCCC;
+}
+
+#sidebar {
+    border-right: 1px solid #CCCCCC;
     min-height: 100vh;
 }
 
-header {
-    grid-area: header;
-    background: #2c3e50;
-    color: white;
-    padding: 1rem 0;
-    box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+/* Навігація */
+.nav-loading {
+    color: #666;
+    font-style: italic;
 }
 
-header .container {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    max-width: 1200px;
-    margin: 0 auto;
-    padding: 0 2rem;
+.nav-item {
+    padding: 3px 0;
+    transition: all 0.2s ease;
+    border-left: 3px solid transparent;
 }
 
-header h1 a {
-    color: white;
-    text-decoration: none;
+.nav-item:hover {
+    border-left-color: #0066CC;
+    background-color: #F0F0F0;
+    padding-left: 5px;
 }
 
-.search-box {
-    position: relative;
+.nav-folder {
+    font-weight: bold;
+    color: #0066CC;
+    cursor: pointer;
+    user-select: none;
+}
+
+.nav-folder::before {
+    content: "📁 ";
+}
+
+.nav-page::before {
+    content: "📄 ";
+}
+
+/* Контент */
+.main-content {
+    animation: contentAppear 0.5s ease-out;
+}
+
+@keyframes contentAppear {
+    from { opacity: 0; transform: translateX(20px); }
+    to { opacity: 1; transform: translateX(0); }
+}
+
+.hidden {
+    display: none;
+}
+
+.welcome-message {
+    text-align: center;
+    padding: 40px 20px;
+}
+
+.search-container {
+    margin: 20px 0;
+}
+
+.search-container input[type="text"] {
+    font-size: 16px;
+    padding: 10px;
+    border: 2px solid #0066CC;
+    border-radius: 5px;
+    transition: all 0.3s ease;
     width: 300px;
 }
 
-#searchInput {
-    width: 100%;
-    padding: 0.5rem 1rem;
+.search-container input[type="text"]:focus {
+    outline: none;
+    box-shadow: 0 0 10px rgba(0,102,204,0.3);
+    transform: scale(1.02);
+}
+
+.search-container input[type="submit"] {
+    font-size: 16px;
+    padding: 10px 20px;
+    background: #0066CC;
+    color: white;
     border: none;
-    border-radius: 25px;
-    font-size: 1rem;
-}
-
-.search-results {
-    position: absolute;
-    top: 100%;
-    left: 0;
-    right: 0;
-    background: white;
-    border: 1px solid #ddd;
     border-radius: 5px;
-    max-height: 300px;
-    overflow-y: auto;
-    display: none;
-    z-index: 1000;
-}
-
-.search-result-item {
-    padding: 0.5rem 1rem;
-    border-bottom: 1px solid #eee;
     cursor: pointer;
+    transition: all 0.3s ease;
 }
 
-.search-result-item:hover {
-    background: #f5f5f5;
+.search-container input[type="submit"]:hover {
+    background: #0055AA;
+    transform: translateY(-2px);
 }
 
-.sidebar {
-    grid-area: sidebar;
-    background: #f8f9fa;
-    padding: 2rem;
-    border-right: 1px solid #dee2e6;
-    overflow-y: auto;
+/* Стаття */
+.article-content {
+    font-family: Arial, Helvetica, sans-serif;
+    line-height: 1.6;
+    animation: articleLoad 0.6s ease-out;
 }
 
-.nav-content h3 {
-    margin-bottom: 1rem;
-    color: #2c3e50;
-}
-
-.nav-content ul {
-    list-style: none;
-}
-
-.nav-content li {
-    margin-bottom: 0.5rem;
-}
-
-.nav-content a {
-    color: #3498db;
-    text-decoration: none;
-    display: block;
-    padding: 0.25rem 0;
-}
-
-.nav-content a:hover {
-    color: #2980b9;
-}
-
-details summary {
-    cursor: pointer;
-    font-weight: bold;
-    margin: 0.5rem 0;
-}
-
-details ul {
-    margin-left: 1rem;
-}
-
-.content {
-    grid-area: content;
-    padding: 2rem;
-    overflow-y: auto;
-}
-
-#contentArea {
-    max-width: 800px;
-    margin: 0 auto;
+@keyframes articleLoad {
+    from { opacity: 0; transform: translateY(20px); }
+    to { opacity: 1; transform: translateY(0); }
 }
 
 .article-content h1 {
-    color: #2c3e50;
-    margin-bottom: 1rem;
-    border-bottom: 2px solid #3498db;
-    padding-bottom: 0.5rem;
+    color: #0066CC;
+    font-size: 24px;
+    border-bottom: 2px solid #CCCCCC;
+    padding-bottom: 10px;
+    margin-bottom: 20px;
+    animation: titleSlide 0.5s ease-out;
+}
+
+@keyframes titleSlide {
+    from { transform: translateX(-50px); opacity: 0; }
+    to { transform: translateX(0); opacity: 1; }
 }
 
 .article-content h2 {
-    color: #34495e;
-    margin: 1.5rem 0 1rem 0;
+    color: #0066CC;
+    font-size: 20px;
+    margin: 25px 0 15px 0;
+    border-left: 4px solid #0066CC;
+    padding-left: 10px;
+}
+
+.article-content h3 {
+    color: #0066CC;
+    font-size: 16px;
+    margin: 20px 0 10px 0;
 }
 
 .article-content p {
-    margin-bottom: 1rem;
+    margin: 15px 0;
+    text-align: justify;
+    animation: paragraphAppear 0.8s ease-out;
+}
+
+@keyframes paragraphAppear {
+    from { opacity: 0; transform: translateY(10px); }
+    to { opacity: 1; transform: translateY(0); }
 }
 
 .article-content ul, .article-content ol {
-    margin-left: 2rem;
-    margin-bottom: 1rem;
+    margin: 15px 0 15px 30px;
+}
+
+.article-content li {
+    margin: 8px 0;
+    animation: listItemAppear 0.5s ease-out;
+}
+
+@keyframes listItemAppear {
+    from { opacity: 0; transform: translateX(-20px); }
+    to { opacity: 1; transform: translateX(0); }
 }
 
 .article-content code {
-    background: #f8f9fa;
-    padding: 0.2rem 0.4rem;
+    background-color: #F0F0F0;
+    padding: 2px 6px;
     border-radius: 3px;
-    font-family: 'Courier New', monospace;
+    font-family: "Courier New", monospace;
+    border: 1px solid #DDD;
 }
 
 .article-content pre {
-    background: #f8f9fa;
-    padding: 1rem;
+    background-color: #F8F8FF;
+    border: 1px solid #CCCCCC;
+    padding: 15px;
+    overflow: auto;
+    font-family: "Courier New", monospace;
+    font-size: 12px;
     border-radius: 5px;
-    overflow-x: auto;
-    margin: 1rem 0;
+    animation: codeBlockAppear 0.5s ease-out;
+}
+
+@keyframes codeBlockAppear {
+    from { opacity: 0; transform: scale(0.95); }
+    to { opacity: 1; transform: scale(1); }
 }
 
 .article-content img {
+    border: 1px solid #CCCCCC;
+    margin: 10px;
     max-width: 100%;
-    height: auto;
-    border-radius: 5px;
-    margin: 1rem 0;
+    transition: all 0.3s ease;
 }
 
-.download-link {
+.article-content img:hover {
+    transform: scale(1.02);
+    box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+}
+
+/* Навігація статті */
+.article-nav {
+    background-color: #F0F0F0;
+    border: 1px solid #CCCCCC;
+    padding: 15px;
+    margin: 20px 0;
+    border-radius: 5px;
+    animation: navAppear 0.4s ease-out;
+}
+
+@keyframes navAppear {
+    from { opacity: 0; transform: translateY(-10px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+/* Результати пошуку */
+.search-result {
+    margin: 15px 0;
+    padding: 15px;
+    background-color: #F8F8FF;
+    border: 1px solid #CCCCCC;
+    border-radius: 5px;
+    transition: all 0.3s ease;
+    animation: searchResultAppear 0.5s ease-out;
+}
+
+@keyframes searchResultAppear {
+    from { opacity: 0; transform: translateY(10px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+.search-result:hover {
+    background-color: #E6E6FA;
+    transform: translateX(5px);
+    box-shadow: 0 3px 10px rgba(0,0,0,0.1);
+}
+
+.search-result h3 {
+    margin: 0 0 8px 0;
+    color: #0066CC;
+}
+
+.search-result .excerpt {
+    color: #666666;
+    font-size: 12px;
+    line-height: 1.4;
+}
+
+/* Підказки пошуку */
+.search-suggestions {
+    position: absolute;
+    background: white;
+    border: 1px solid #CCC;
+    max-height: 200px;
+    overflow-y: auto;
+    z-index: 1000;
+    width: 200px;
+    box-shadow: 0 3px 10px rgba(0,0,0,0.2);
+    animation: suggestionsAppear 0.2s ease-out;
+}
+
+@keyframes suggestionsAppear {
+    from { opacity: 0; transform: translateY(-10px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+.suggestion-item {
+    padding: 8px 12px;
+    cursor: pointer;
+    border-bottom: 1px solid #EEE;
+    transition: background-color 0.2s ease;
+}
+
+.suggestion-item:hover {
+    background-color: #E6E6FA;
+}
+
+/* Статистика */
+.quick-stats {
+    background: #F8F8FF;
+    border: 1px solid #CCCCCC;
+    padding: 15px;
+    border-radius: 5px;
     display: inline-block;
-    background: #3498db;
-    color: white;
-    padding: 0.5rem 1rem;
+    animation: statsPulse 2s infinite;
+}
+
+@keyframes statsPulse {
+    0%, 100% { transform: scale(1); }
+    50% { transform: scale(1.02); }
+}
+
+.stats-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 15px;
+    margin: 20px 0;
+}
+
+.stat-card {
+    background: white;
+    border: 1px solid #CCC;
+    padding: 15px;
     border-radius: 5px;
-    text-decoration: none;
-    margin: 0.5rem 0;
-}
-
-.download-link:hover {
-    background: #2980b9;
-}
-
-footer {
-    grid-area: footer;
-    background: #34495e;
-    color: white;
     text-align: center;
-    padding: 1rem 0;
+    transition: all 0.3s ease;
+    animation: statCardAppear 0.6s ease-out;
 }
 
-.container {
-    max-width: 1200px;
-    margin: 0 auto;
-    padding: 0 2rem;
+@keyframes statCardAppear {
+    from { opacity: 0; transform: scale(0.8); }
+    to { opacity: 1; transform: scale(1); }
 }
 
-#loading {
+.stat-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+}
+
+.stat-number {
+    font-size: 24px;
+    font-weight: bold;
+    color: #0066CC;
+    display: block;
+}
+
+.stat-label {
+    font-size: 12px;
+    color: #666;
+}
+
+/* Завантаження */
+.loading {
     text-align: center;
-    padding: 2rem;
-    font-size: 1.2rem;
+    padding: 40px;
+    color: #666;
 }
 
+.loading::after {
+    content: "";
+    animation: loadingDots 1.5s infinite;
+}
+
+@keyframes loadingDots {
+    0%, 20% { content: "."; }
+    40% { content: ".."; }
+    60%, 100% { content: "..."; }
+}
+
+/* Адаптивність */
 @media (max-width: 768px) {
-    body {
-        grid-template-areas: 
-            "header"
-            "content"
-            "footer";
-        grid-template-columns: 1fr;
-    }
-    
-    .sidebar {
+    #sidebar {
         display: none;
     }
     
-    header .container {
-        flex-direction: column;
-        gap: 1rem;
+    td[width="200"] {
+        display: none;
     }
     
-    .search-box {
-        width: 100%;
+    .search-container input[type="text"] {
+        width: 200px;
     }
+}
+
+/* Спеціальні ефекти */
+.highlight {
+    background-color: #FFFF88;
+    padding: 2px 4px;
+    border-radius: 2px;
+    animation: highlightPulse 1s ease;
+}
+
+@keyframes highlightPulse {
+    0% { background-color: #FFFF88; }
+    50% { background-color: #FFFF00; }
+    100% { background-color: #FFFF88; }
+}
+
+.folder-contents {
+    margin-left: 20px;
+    animation: folderOpen 0.3s ease-out;
+}
+
+@keyframes folderOpen {
+    from { opacity: 0; max-height: 0; }
+    to { opacity: 1; max-height: 1000px; }
 }
