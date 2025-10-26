@@ -1,4 +1,4 @@
-class SecureHoRPWiki {
+class HoRPWiki {
     constructor() {
         this.repoOwner = 'pisdukblaty';
         this.repoName = 'HoRP-wiKi';
@@ -6,147 +6,99 @@ class SecureHoRPWiki {
         this.baseUrl = `https://raw.githubusercontent.com/${this.repoOwner}/${this.repoName}/${this.branch}`;
         this.apiBaseUrl = `https://api.github.com/repos/${this.repoOwner}/${this.repoName}/contents`;
         
-        // Налаштування OAuth (замініть на свої)
-        this.oauthConfig = {
-            clientId: 'YOUR_GITHUB_OAUTH_CLIENT_ID',
-            redirectUri: window.location.origin + window.location.pathname,
-            scope: 'user:email,public_repo',
-            state: this.generateState()
-        };
-        
         this.pages = [];
-        this.users = new Map();
-        this.currentUser = null;
+        this.structure = {};
         this.currentTheme = localStorage.getItem('wiki-theme') || 'light';
+        this.searchIndex = [];
         
         this.init();
     }
 
     async init() {
-        console.log('🏁 Ініціалізація захищеної HoRP-wiKi...');
+        console.log('🏁 Ініціалізація HoRP-wiKi...');
         
         this.setupTheme();
         this.setupEventListeners();
-        this.checkAuthState();
         await this.loadData();
         this.updateUI();
         
         console.log('✅ HoRP-wiKi готовий до роботи');
     }
 
-    // Система авторизації
-    generateState() {
-        return Math.random().toString(36).substring(2, 15) + Math.random().toString(36).substring(2, 15);
-    }
-
-    startGitHubAuth() {
-        const authUrl = `https://github.com/oauth/authorize?` +
-            `client_id=${this.oauthConfig.clientId}&` +
-            `redirect_uri=${encodeURIComponent(this.oauthConfig.redirectUri)}&` +
-            `scope=${encodeURIComponent(this.oauthConfig.scope)}&` +
-            `state=${this.oauthConfig.state}`;
+    setupTheme() {
+        document.documentElement.setAttribute('data-theme', this.currentTheme);
         
-        localStorage.setItem('oauth_state', this.oauthConfig.state);
-        window.location.href = authUrl;
+        // Оновлюємо активні кнопки теми
+        document.querySelectorAll('.theme-btn').forEach(btn => {
+            btn.classList.toggle('active', btn.dataset.theme === this.currentTheme);
+        });
+        
+        // Автоматична тема
+        if (this.currentTheme === 'auto') {
+            this.applyAutoTheme();
+        }
     }
 
-    async handleOAuthCallback() {
-        const urlParams = new URLSearchParams(window.location.search);
-        const code = urlParams.get('code');
-        const state = urlParams.get('state');
-        const storedState = localStorage.getItem('oauth_state');
+    applyAutoTheme() {
+        const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+        document.documentElement.setAttribute('data-theme', prefersDark ? 'dark' : 'light');
+    }
 
-        if (code && state === storedState) {
-            try {
-                await this.exchangeCodeForToken(code);
-                // Видаляємо параметри з URL
-                window.history.replaceState({}, document.title, window.location.pathname);
-            } catch (error) {
-                console.error('Помилка авторизації:', error);
-                this.showNotification('Помилка авторизації', 'error');
+    setupEventListeners() {
+        // Перемикачі теми
+        document.querySelectorAll('.theme-btn').forEach(btn => {
+            btn.addEventListener('click', (e) => {
+                this.currentTheme = e.target.dataset.theme;
+                localStorage.setItem('wiki-theme', this.currentTheme);
+                this.setupTheme();
+            });
+        });
+
+        // Навігація
+        document.querySelectorAll('.nav-item[data-section]').forEach(item => {
+            item.addEventListener('click', (e) => {
+                e.preventDefault();
+                this.showSection(item.dataset.section);
+                
+                // Оновлюємо активний стан
+                document.querySelectorAll('.nav-item').forEach(nav => nav.classList.remove('active'));
+                item.classList.add('active');
+            });
+        });
+
+        // Пошук
+        const searchInput = document.getElementById('searchInput');
+        searchInput.addEventListener('input', (e) => this.handleSearchInput(e.target.value));
+        searchInput.addEventListener('focus', () => this.showSearchSuggestions());
+        searchInput.addEventListener('blur', () => {
+            setTimeout(() => this.hideSearchSuggestions(), 200);
+        });
+
+        // Media query для автоматичної теми
+        window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', () => {
+            if (this.currentTheme === 'auto') {
+                this.applyAutoTheme();
             }
-        }
+        });
     }
 
-    async exchangeCodeForToken(code) {
-        // У реальному додатку тут буде запит до вашого сервера
-        // Для демонстрації використовуємо імітацію
-        const mockUser = {
-            id: Math.random().toString(36).substr(2, 9),
-            login: 'demo-user',
-            name: 'Demo User',
-            avatar_url: '',
-            email: 'demo@example.com',
-            role: 'user'
-        };
-
-        this.currentUser = mockUser;
-        localStorage.setItem('currentUser', JSON.stringify(mockUser));
-        this.showNotification('Успішна авторизація!', 'success');
-        this.updateUI();
-    }
-
-    checkAuthState() {
-        const savedUser = localStorage.getItem('currentUser');
-        if (savedUser) {
-            this.currentUser = JSON.parse(savedUser);
-        }
-        
-        this.handleOAuthCallback();
-    }
-
-    logout() {
-        this.currentUser = null;
-        localStorage.removeItem('currentUser');
-        localStorage.removeItem('oauth_state');
-        this.showNotification('Ви вийшли з системи', 'info');
-        this.updateUI();
-    }
-
-    // Ролі та дозволи
-    hasPermission(permission) {
-        if (!this.currentUser) return false;
-        
-        const permissions = {
-            'admin': ['read', 'write', 'delete', 'manage_users', 'manage_content'],
-            'editor': ['read', 'write', 'delete_own'],
-            'user': ['read', 'write_own', 'edit_own']
-        };
-        
-        return permissions[this.currentUser.role]?.includes(permission) || false;
-    }
-
-    canEditArticle(article) {
-        if (!this.currentUser) return false;
-        if (this.hasPermission('manage_content')) return true;
-        if (this.hasPermission('edit_own') && article.author === this.currentUser.login) return true;
-        return false;
-    }
-
-    canDeleteArticle(article) {
-        if (!this.currentUser) return false;
-        if (this.hasPermission('delete')) return true;
-        if (this.hasPermission('delete_own') && article.author === this.currentUser.login) return true;
-        return false;
-    }
-
-    // Завантаження даних
     async loadData() {
-        console.log('🌐 Завантаження даних...');
-        
         try {
+            this.showLoading('Завантаження даних...');
+            
+            // Спроба завантажити з кешу
             if (this.loadFromCache()) {
                 console.log('📂 Дані завантажено з кешу');
                 return;
             }
 
+            // Завантаження з GitHub
             await this.scanRepository();
-            await this.loadUsers();
             this.cacheData();
             
         } catch (error) {
             console.error('❌ Помилка завантаження:', error);
-            this.showError('Не вдалося завантажити дані');
+            this.loadFallbackData();
         }
     }
 
@@ -155,447 +107,487 @@ class SecureHoRPWiki {
         
         try {
             const contents = await this.fetchGitHubContents('pages');
-            this.pages = await this.buildPagesList(contents, 'pages');
+            this.structure = await this.buildStructure(contents, 'pages');
+            this.pages = this.extractPagesFromStructure(this.structure);
+            this.buildSearchIndex();
+            
             console.log(`✅ Знайдено ${this.pages.length} сторінок`);
             
         } catch (error) {
             console.error('❌ Помилка сканування:', error);
-            this.pages = [];
+            throw error;
         }
     }
 
-    async loadUsers() {
-        // У реальному додатку тут буде завантаження користувачів з бази даних
-        // Для демонстрації використовуємо мок-дані
-        this.users.set('admin', {
-            id: '1',
-            login: 'admin',
-            name: 'Адміністратор',
-            role: 'admin',
-            articlesCount: 0,
-            joinedAt: new Date('2024-01-01')
-        });
-        
-        this.users.set('demo-user', {
-            id: '2',
-            login: 'demo-user',
-            name: 'Demo User',
-            role: 'user',
-            articlesCount: 0,
-            joinedAt: new Date()
-        });
+    async fetchGitHubContents(path) {
+        const response = await fetch(`${this.apiBaseUrl}/${path}`);
+        if (!response.ok) throw new Error(`HTTP ${response.status}`);
+        return await response.json();
     }
 
-    // UI Management
-    updateUI() {
-        this.updateUserInterface();
-        this.updateStats();
-        this.updateSidebar();
-        this.updateMainPage();
-    }
-
-    updateUserInterface() {
-        const userMenu = document.getElementById('userMenu');
-        const loginBtn = document.getElementById('loginBtn');
-        const logoutBtn = document.getElementById('logoutBtn');
-        const profileBtn = document.getElementById('profileBtn');
-        const createArticleBtn = document.getElementById('createArticleBtn');
-        const myArticlesBtn = document.getElementById('myArticlesBtn');
-        const adminSection = document.getElementById('adminSection');
-        const authPromo = document.getElementById('authPromo');
-
-        if (this.currentUser) {
-            // Оновлюємо інформацію про користувача
-            document.getElementById('userName').textContent = this.currentUser.name || this.currentUser.login;
-            document.getElementById('userRole').textContent = this.getRoleDisplayName(this.currentUser.role);
-            document.getElementById('userAvatar').textContent = (this.currentUser.name || this.currentUser.login).charAt(0).toUpperCase();
-            
-            // Показуємо кнопки для авторизованих користувачів
-            loginBtn.style.display = 'none';
-            logoutBtn.style.display = 'block';
-            profileBtn.style.display = 'block';
-            createArticleBtn.style.display = 'block';
-            myArticlesBtn.style.display = 'block';
-            
-            // Ховаємо промо авторизації
-            if (authPromo) authPromo.style.display = 'none';
-
-            // Показуємо адмін-панель для адміністраторів
-            if (this.hasPermission('manage_users')) {
-                adminSection.style.display = 'block';
-            }
-        } else {
-            // Скидаємо інтерфейс для гостя
-            document.getElementById('userName').textContent = 'Гість';
-            document.getElementById('userRole').textContent = 'Не авторизований';
-            document.getElementById('userAvatar').textContent = '👤';
-            
-            loginBtn.style.display = 'block';
-            logoutBtn.style.display = 'none';
-            profileBtn.style.display = 'none';
-            createArticleBtn.style.display = 'none';
-            myArticlesBtn.style.display = 'none';
-            adminSection.style.display = 'none';
-            
-            if (authPromo) authPromo.style.display = 'block';
-        }
-    }
-
-    getRoleDisplayName(role) {
-        const roles = {
-            'admin': 'Адміністратор',
-            'editor': 'Редактор',
-            'user': 'Користувач'
+    async buildStructure(contents, currentPath) {
+        const node = {
+            name: currentPath.split('/').pop() || 'pages',
+            path: currentPath,
+            type: 'folder',
+            children: []
         };
-        return roles[role] || 'Користувач';
-    }
 
-    // Статті та редагування
-    async createArticle(formData) {
-        if (!this.currentUser) {
-            this.showNotification('Спочатку увійдіть в систему', 'error');
-            return false;
-        }
-
-        try {
-            const article = {
-                title: formData.title,
-                path: formData.path,
-                category: formData.category,
-                content: formData.content,
-                author: this.currentUser.login,
-                createdAt: new Date().toISOString(),
-                updatedAt: new Date().toISOString()
-            };
-
-            // У реальному додатку тут буде відправка на сервер
-            // Для демонстрації додаємо локально
-            this.pages.push(article);
-            this.cacheData();
-            
-            this.showNotification('Стаття успішно створена!', 'success');
-            this.closeCreateArticleModal();
-            this.showSection('my-articles');
-            
-            return true;
-        } catch (error) {
-            console.error('Помилка створення статті:', error);
-            this.showNotification('Помилка створення статті', 'error');
-            return false;
-        }
-    }
-
-    async updateArticle(formData) {
-        if (!this.currentUser) {
-            this.showNotification('Спочатку увійдіть в систему', 'error');
-            return false;
-        }
-
-        try {
-            const articleIndex = this.pages.findIndex(p => p.path === formData.path);
-            if (articleIndex === -1) {
-                throw new Error('Статтю не знайдено');
+        for (const item of contents) {
+            if (item.type === 'dir') {
+                try {
+                    const subContents = await this.fetchGitHubContents(item.path);
+                    const subNode = await this.buildStructure(subContents, item.path);
+                    node.children.push(subNode);
+                } catch (error) {
+                    console.error(`❌ Помилка завантаження папки ${item.path}:`, error);
+                }
+            } else if (item.type === 'file' && item.name.endsWith('.md')) {
+                node.children.push({
+                    name: item.name.replace('.md', ''),
+                    path: item.path,
+                    type: 'file',
+                    url: item.download_url,
+                    size: item.size
+                });
             }
+        }
 
-            const article = this.pages[articleIndex];
-            
-            // Перевіряємо права доступу
-            if (!this.canEditArticle(article)) {
-                this.showNotification('У вас немає прав для редагування цієї статті', 'error');
-                return false;
+        return node;
+    }
+
+    extractPagesFromStructure(structure) {
+        const pages = [];
+        
+        function traverse(node) {
+            if (node.type === 'file') {
+                const pagePath = node.path.replace('pages/', '').replace('.md', '');
+                pages.push({
+                    title: node.name,
+                    path: pagePath,
+                    url: node.url,
+                    size: node.size,
+                    category: this.getCategoryFromPath(pagePath)
+                });
+            } else if (node.children) {
+                node.children.forEach(traverse.bind(this));
             }
-
-            // Оновлюємо статтю
-            this.pages[articleIndex] = {
-                ...article,
-                title: formData.title,
-                content: formData.content,
-                updatedAt: new Date().toISOString()
-            };
-
-            this.cacheData();
-            this.showNotification('Стаття успішно оновлена!', 'success');
-            this.closeEditArticleModal();
-            this.loadPage(formData.path);
-            
-            return true;
-        } catch (error) {
-            console.error('Помилка оновлення статті:', error);
-            this.showNotification('Помилка оновлення статті', 'error');
-            return false;
         }
+        
+        traverse.call(this, structure);
+        return pages;
     }
 
-    async deleteArticle(articlePath) {
-        if (!this.currentUser) {
-            this.showNotification('Спочатку увійдіть в систему', 'error');
-            return false;
-        }
-
-        const article = this.pages.find(p => p.path === articlePath);
-        if (!article) {
-            this.showNotification('Статтю не знайдено', 'error');
-            return false;
-        }
-
-        if (!this.canDeleteArticle(article)) {
-            this.showNotification('У вас немає прав для видалення цієї статті', 'error');
-            return false;
-        }
-
-        if (!confirm('Ви впевнені, що хочете видалити цю статтю?')) {
-            return false;
-        }
-
-        try {
-            this.pages = this.pages.filter(p => p.path !== articlePath);
-            this.cacheData();
-            this.showNotification('Стаття успішно видалена', 'success');
-            this.showSection('my-articles');
-            return true;
-        } catch (error) {
-            console.error('Помилка видалення статті:', error);
-            this.showNotification('Помилка видалення статті', 'error');
-            return false;
-        }
+    getCategoryFromPath(path) {
+        const parts = path.split('/');
+        return parts.length > 1 ? parts[0] : 'Інше';
     }
 
-    getMyArticles() {
-        if (!this.currentUser) return [];
-        return this.pages.filter(article => article.author === this.currentUser.login);
+    buildSearchIndex() {
+        this.searchIndex = this.pages.map(page => ({
+            title: page.title.toLowerCase(),
+            path: page.path.toLowerCase(),
+            category: page.category.toLowerCase(),
+            page: page
+        }));
     }
 
-    // Допоміжні методи
-    showNotification(message, type = 'info') {
-        // Створюємо сповіщення
-        const notification = document.createElement('div');
-        notification.className = `notification notification-${type}`;
-        notification.innerHTML = `
-            <div class="notification-content">
-                <span class="notification-message">${message}</span>
-                <button class="notification-close" onclick="this.parentElement.parentElement.remove()">×</button>
+    // Пошук
+    handleSearchInput(query) {
+        if (query.length === 0) {
+            this.hideSearchSuggestions();
+            return;
+        }
+
+        if (query.length < 2) {
+            this.showSearchSuggestions(['Введіть щонайменше 2 символи...']);
+            return;
+        }
+
+        const suggestions = this.searchPages(query, 5);
+        this.showSearchSuggestions(suggestions);
+    }
+
+    searchPages(query, limit = 50) {
+        const lowerQuery = query.toLowerCase();
+        const results = [];
+
+        // Пошук в назвах (вищий пріоритет)
+        const titleResults = this.pages.filter(page => 
+            page.title.toLowerCase().includes(lowerQuery)
+        ).slice(0, limit);
+
+        // Пошук в шляхах
+        const pathResults = this.pages.filter(page => 
+            page.path.toLowerCase().includes(lowerQuery) &&
+            !titleResults.includes(page)
+        ).slice(0, limit - titleResults.length);
+
+        // Пошук в категоріях
+        const categoryResults = this.pages.filter(page => 
+            page.category.toLowerCase().includes(lowerQuery) &&
+            !titleResults.includes(page) &&
+            !pathResults.includes(page)
+        ).slice(0, limit - titleResults.length - pathResults.length);
+
+        // Об'єднання результатів
+        return [...titleResults, ...pathResults, ...categoryResults];
+    }
+
+    async performSearch(query = null) {
+        const searchQuery = query || document.getElementById('searchInput').value.trim();
+        
+        if (!searchQuery) {
+            this.showSection('main');
+            return;
+        }
+
+        this.showSection('search');
+        this.showLoading('Пошук...', 'searchResults');
+
+        // Імітація затримки пошуку
+        await new Promise(resolve => setTimeout(resolve, 300));
+
+        const results = this.searchPages(searchQuery);
+        this.displaySearchResults(results, searchQuery);
+    }
+
+    displaySearchResults(results, query) {
+        const container = document.getElementById('searchResults');
+        const meta = document.getElementById('searchMeta');
+
+        if (results.length === 0) {
+            container.innerHTML = `
+                <div class="no-results">
+                    <h3>Результатів не знайдено</h3>
+                    <p>Немає результатів для "<strong>${query}</strong>"</p>
+                    <p>Спробуйте інші ключові слова або <a href="#" onclick="wiki.showSection('articles')">перегляньте всі статті</a>.</p>
+                </div>
+            `;
+            meta.textContent = `0 результатів для "${query}"`;
+            return;
+        }
+
+        meta.textContent = `${results.length} результатів для "${query}"`;
+        container.innerHTML = results.map(result => `
+            <div class="search-result" onclick="wiki.loadPage('${result.path}')">
+                <h3>${this.highlightText(result.title, query)}</h3>
+                <div class="search-path">${result.path}</div>
+                <div class="search-category">Категорія: ${result.category}</div>
             </div>
-        `;
-
-        // Додаємо стилі для сповіщень
-        if (!document.querySelector('.notification-styles')) {
-            const styles = document.createElement('style');
-            styles.className = 'notification-styles';
-            styles.textContent = `
-                .notification {
-                    position: fixed;
-                    top: 20px;
-                    right: 20px;
-                    z-index: 3000;
-                    animation: slideInRight 0.3s ease;
-                }
-                .notification-content {
-                    background: white;
-                    border: 1px solid #ddd;
-                    border-radius: 4px;
-                    padding: 1rem;
-                    box-shadow: 0 2px 10px rgba(0,0,0,0.1);
-                    display: flex;
-                    align-items: center;
-                    gap: 1rem;
-                }
-                .notification-success { border-left: 4px solid #28a745; }
-                .notification-error { border-left: 4px solid #dc3545; }
-                .notification-info { border-left: 4px solid #17a2b8; }
-                .notification-warning { border-left: 4px solid #ffc107; }
-                .notification-close {
-                    background: none;
-                    border: none;
-                    font-size: 1.2rem;
-                    cursor: pointer;
-                    padding: 0;
-                    width: 20px;
-                    height: 20px;
-                }
-                @keyframes slideInRight {
-                    from { transform: translateX(100%); opacity: 0; }
-                    to { transform: translateX(0); opacity: 1; }
-                }
-            `;
-            document.head.appendChild(styles);
-        }
-
-        document.body.appendChild(notification);
-
-        // Автоматичне видалення через 5 секунд
-        setTimeout(() => {
-            if (notification.parentElement) {
-                notification.remove();
-            }
-        }, 5000);
+        `).join('');
     }
 
-    setupEventListeners() {
-        // Закриття модальних вікон при кліку на затемнення
-        document.addEventListener('click', (e) => {
-            if (e.target.classList.contains('modal')) {
-                this.closeAllModals();
-            }
-        });
-
-        // Закриття випадаючого меню при кліку поза ним
-        document.addEventListener('click', (e) => {
-            const userMenu = document.getElementById('userMenu');
-            const userDropdown = document.getElementById('userDropdown');
-            if (!userMenu.contains(e.target) && userDropdown.classList.contains('show')) {
-                userDropdown.classList.remove('show');
-            }
-        });
+    highlightText(text, query) {
+        const regex = new RegExp(`(${this.escapeRegex(query)})`, 'gi');
+        return text.replace(regex, '<mark>$1</mark>');
     }
 
-    // Модальні вікна
-    showLoginModal() {
-        document.getElementById('loginModal').classList.add('show');
+    escapeRegex(string) {
+        return string.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
     }
 
-    closeLoginModal() {
-        document.getElementById('loginModal').classList.remove('show');
-    }
-
-    showCreateArticleModal() {
-        if (!this.currentUser) {
-            this.showLoginModal();
-            return;
-        }
-        document.getElementById('createArticleModal').classList.add('show');
-    }
-
-    closeCreateArticleModal() {
-        document.getElementById('createArticleModal').classList.remove('show');
-        document.getElementById('createArticleForm').reset();
-    }
-
-    showEditArticleModal(article) {
-        if (!this.currentUser) {
-            this.showLoginModal();
-            return;
-        }
-
-        if (!this.canEditArticle(article)) {
-            this.showNotification('У вас немає прав для редагування цієї статті', 'error');
-            return;
-        }
-
-        document.getElementById('editArticlePath').value = article.path;
-        document.getElementById('editArticleTitle').value = article.title;
-        document.getElementById('editArticleContent').value = article.content;
-        document.getElementById('editArticleModal').classList.add('show');
-    }
-
-    closeEditArticleModal() {
-        document.getElementById('editArticleModal').classList.remove('show');
-        document.getElementById('editArticleForm').reset();
-    }
-
-    closeAllModals() {
-        document.querySelectorAll('.modal').forEach(modal => {
-            modal.classList.remove('show');
-        });
-    }
-
-    // Інші методи (loadPage, searchPages, etc.) залишаються аналогічними попередній версії
-    // Додамо тільки оновлені методи для відображення авторів та кнопок дій
-
-    displayArticle(page, content) {
-        document.getElementById('articleTitle').textContent = page.title;
-        this.updateBreadcrumbs(page);
+    showSearchSuggestions(suggestions) {
+        const container = document.getElementById('searchSuggestions');
         
-        document.getElementById('articleModified').textContent = `Востаннє редагувалося: ${new Date().toISOString().split('T')[0]}`;
-        
-        // Відображаємо автора
-        const authorElement = document.getElementById('articleAuthor');
-        if (page.author) {
-            authorElement.innerHTML = `
-                <div class="author-avatar">${page.author.charAt(0).toUpperCase()}</div>
-                <div class="author-name">Автор: ${page.author}</div>
-            `;
+        if (!suggestions || suggestions.length === 0) {
+            container.style.display = 'none';
+            return;
+        }
+
+        if (typeof suggestions[0] === 'string') {
+            container.innerHTML = `<div class="search-suggestion">${suggestions[0]}</div>`;
         } else {
-            authorElement.innerHTML = '';
+            container.innerHTML = suggestions.map(page => `
+                <div class="search-suggestion" onclick="wiki.loadPage('${page.path}')">
+                    ${page.title} <small>(${page.category})</small>
+                </div>
+            `).join('');
         }
-
-        // Додаємо кнопки дій
-        const actionsElement = document.getElementById('articleActions');
-        actionsElement.innerHTML = '';
-
-        if (this.canEditArticle(page)) {
-            actionsElement.innerHTML += `
-                <button class="action-btn edit" onclick="wiki.showEditArticleModal(${JSON.stringify(page).replace(/"/g, '&quot;')})">
-                    ✏️ Редагувати
-                </button>
-            `;
-        }
-
-        if (this.canDeleteArticle(page)) {
-            actionsElement.innerHTML += `
-                <button class="action-btn delete" onclick="wiki.deleteArticle('${page.path}')">
-                    🗑️ Видалити
-                </button>
-            `;
-        }
-
-        actionsElement.innerHTML += `
-            <button class="action-btn" onclick="wiki.shareArticle()">📤 Поділитися</button>
-        `;
-
-        const htmlContent = this.convertMarkdownToHtml(content);
-        document.getElementById('articleContent').innerHTML = htmlContent;
         
-        this.updateArticleInfo(page);
+        container.style.display = 'block';
     }
 
-    updateMyArticlesPage() {
-        const container = document.getElementById('myArticlesList');
-        
-        if (!this.currentUser) {
-            container.innerHTML = `
-                <div class="auth-required">
-                    <p>Увійдіть, щоб переглянути свої статті</p>
-                    <button class="auth-btn" onclick="wiki.showLoginModal()">Увійти через GitHub</button>
-                </div>
-            `;
-            return;
-        }
+    hideSearchSuggestions() {
+        const container = document.getElementById('searchSuggestions');
+        container.style.display = 'none';
+    }
 
-        const myArticles = this.getMyArticles();
-        
-        if (myArticles.length === 0) {
-            container.innerHTML = `
-                <div class="empty-state">
-                    <h3>📝 У вас ще немає статей</h3>
-                    <p>Створіть свою першу статтю!</p>
-                    <button class="auth-btn" onclick="wiki.showCreateArticleModal()">Створити статтю</button>
-                </div>
-            `;
-            return;
-        }
+    // Навігація
+    showSection(sectionName) {
+        // Приховуємо всі секції
+        document.querySelectorAll('.content-section').forEach(section => {
+            section.classList.remove('active');
+        });
 
-        container.innerHTML = myArticles.map(article => `
-            <div class="article-card">
-                <div class="article-header">
-                    <h3>${article.title}</h3>
-                    <div class="article-meta">
-                        <span>Категорія: ${article.category}</span>
-                        <span>Створено: ${new Date(article.createdAt).toLocaleDateString('uk-UA')}</span>
-                    </div>
-                </div>
-                <div class="article-actions">
-                    <button class="action-btn" onclick="wiki.loadPage('${article.path}')">👀 Переглянути</button>
-                    <button class="action-btn edit" onclick="wiki.showEditArticleModal(${JSON.stringify(article).replace(/"/g, '&quot;')})">✏️ Редагувати</button>
-                    <button class="action-btn delete" onclick="wiki.deleteArticle('${article.path}')">🗑️ Видалити</button>
+        // Показуємо потрібну секцію
+        const targetSection = document.getElementById(`${sectionName}-section`);
+        if (targetSection) {
+            targetSection.classList.add('active');
+            this.updateSectionContent(sectionName);
+        }
+    }
+
+    updateSectionContent(sectionName) {
+        switch (sectionName) {
+            case 'main':
+                this.updateMainPage();
+                break;
+            case 'articles':
+                this.updateArticlesPage();
+                break;
+            case 'categories':
+                this.updateCategoriesPage();
+                break;
+            case 'search':
+                // Контент оновлюється при пошуку
+                break;
+        }
+    }
+
+    updateMainPage() {
+        this.updatePopularArticles();
+        this.updateMainCategories();
+    }
+
+    updatePopularArticles() {
+        const container = document.getElementById('popularArticles');
+        const popular = this.pages.slice(0, 8); // Перші 8 як популярні
+        
+        container.innerHTML = popular.map(page => `
+            <a href="#" class="article-link" onclick="wiki.loadPage('${page.path}')">${page.title}</a>
+        `).join('');
+    }
+
+    updateMainCategories() {
+        const container = document.getElementById('mainCategories');
+        const categories = this.getCategoriesWithCounts().slice(0, 8);
+        
+        container.innerHTML = categories.map(cat => `
+            <a href="#" class="category-link" onclick="wiki.showCategory('${cat.name}')">${cat.name} (${cat.count})</a>
+        `).join('');
+    }
+
+    updateArticlesPage() {
+        const container = document.getElementById('articlesList');
+        const count = document.getElementById('articlesCount');
+        
+        count.textContent = `${this.pages.length} статей`;
+        container.innerHTML = this.pages.map(page => `
+            <div class="article-card" onclick="wiki.loadPage('${page.path}')">
+                <h3>${page.title}</h3>
+                <div class="article-path">${page.path}</div>
+                <div class="article-category">Категорія: ${page.category}</div>
+            </div>
+        `).join('');
+    }
+
+    updateCategoriesPage() {
+        const container = document.getElementById('categoriesGrid');
+        const categories = this.getCategoriesWithCounts();
+        
+        container.innerHTML = categories.map(cat => `
+            <div class="category-card" onclick="wiki.showCategory('${cat.name}')">
+                <h3>${cat.name}</h3>
+                <div class="category-stats">${cat.count} статей</div>
+                <div class="category-preview">
+                    ${this.getCategoryPreview(cat.name).map(page => `
+                        <div><a href="#" onclick="wiki.loadPage('${page.path}')">${page.title}</a></div>
+                    `).join('')}
                 </div>
             </div>
         `).join('');
     }
 
-    // Кешування та інші методи залишаються аналогічними
+    getCategoriesWithCounts() {
+        const categories = {};
+        
+        this.pages.forEach(page => {
+            categories[page.category] = (categories[page.category] || 0) + 1;
+        });
+
+        return Object.entries(categories)
+            .map(([name, count]) => ({ name, count }))
+            .sort((a, b) => b.count - a.count);
+    }
+
+    getCategoryPreview(categoryName) {
+        return this.pages
+            .filter(page => page.category === categoryName)
+            .slice(0, 5);
+    }
+
+    showCategory(categoryName) {
+        const categoryPages = this.pages.filter(page => page.category === categoryName);
+        // Можна реалізувати сторінку категорії
+        this.showSection('articles');
+    }
+
+    // Завантаження статті
+    async loadPage(pagePath) {
+        this.showSection('article');
+        this.showLoading('Завантаження статті...', 'articleContent');
+
+        const page = this.pages.find(p => p.path === pagePath);
+        if (!page) {
+            this.showError('Статтю не знайдено', 'articleContent');
+            return;
+        }
+
+        try {
+            const response = await fetch(page.url);
+            if (!response.ok) throw new Error('Не вдалося завантажити статтю');
+            
+            const content = await response.text();
+            this.displayArticle(page, content);
+            
+        } catch (error) {
+            console.error('❌ Помилка завантаження статті:', error);
+            this.showError('Помилка завантаження статті', 'articleContent');
+        }
+    }
+
+    displayArticle(page, content) {
+        // Оновлюємо заголовок
+        document.getElementById('articleTitle').textContent = page.title;
+        
+        // Оновлюємо хлібні крихти
+        this.updateBreadcrumbs(page);
+        
+        // Оновлюємо мета-інформацію
+        document.getElementById('articleModified').textContent = `Востаннє редагувалося: ${new Date().toLocaleDateString('uk-UA')}`;
+        
+        // Конвертуємо та відображаємо контент
+        const htmlContent = this.convertMarkdownToHtml(content);
+        document.getElementById('articleContent').innerHTML = htmlContent;
+        
+        // Оновлюємо додаткову інформацію
+        this.updateArticleInfo(page);
+    }
+
+    updateBreadcrumbs(page) {
+        const parts = page.path.split('/');
+        let breadcrumbs = '<a href="#" onclick="wiki.showSection(\'main\')">Головна</a>';
+        let currentPath = '';
+
+        parts.forEach((part, index) => {
+            currentPath += (currentPath ? '/' : '') + part;
+            const isLast = index === parts.length - 1;
+            
+            if (isLast) {
+                breadcrumbs += ` › <span>${part}</span>`;
+            } else {
+                breadcrumbs += ` › <a href="#" onclick="wiki.loadPage('${currentPath}')">${part}</a>`;
+            }
+        });
+
+        document.getElementById('breadcrumbs').innerHTML = breadcrumbs;
+    }
+
+    convertMarkdownToHtml(markdown) {
+        return markdown
+            .replace(/^### (.*$)/gim, '<h3>$1</h3>')
+            .replace(/^## (.*$)/gim, '<h2>$1</h2>')
+            .replace(/^# (.*$)/gim, '<h1>$1</h1>')
+            .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
+            .replace(/\*(.*?)\*/g, '<em>$1</em>')
+            .replace(/`(.*?)`/g, '<code>$1</code>')
+            .replace(/!\[(.*?)\]\((.*?)\)/g, '<img src="$2" alt="$1" loading="lazy">')
+            .replace(/\[(.*?)\]\((.*?)\)/g, '<a href="$2" target="_blank">$1</a>')
+            .replace(/\[\[(.*?)\]\]/g, (match, pageName) => {
+                const foundPage = this.pages.find(p => p.title === pageName || p.path === pageName);
+                return foundPage ? 
+                    `<a href="#" onclick="wiki.loadPage('${foundPage.path}')">${pageName}</a>` :
+                    `<span class="broken-link" title="Стаття не знайдена">${pageName}</span>`;
+            })
+            .replace(/^- (.*$)/gim, '<li>$1</li>')
+            .replace(/(<li>.*<\/li>)/s, '<ul>$1</ul>')
+            .replace(/\n\n/g, '</p><p>')
+            .replace(/\n/g, '<br>');
+    }
+
+    updateArticleInfo(page) {
+        // Категорії
+        const categories = document.getElementById('articleCategories');
+        categories.innerHTML = `<a href="#" onclick="wiki.showCategory('${page.category}')">${page.category}</a>`;
+
+        // Пов'язані статті
+        const related = this.getRelatedArticles(page);
+        const relatedContainer = document.getElementById('relatedArticles');
+        relatedContainer.innerHTML = related.map(rel => `
+            <div><a href="#" onclick="wiki.loadPage('${rel.path}')">${rel.title}</a></div>
+        `).join('');
+    }
+
+    getRelatedArticles(page) {
+        // Спрощена логіка для пов'язаних статей
+        return this.pages
+            .filter(p => p.category === page.category && p.path !== page.path)
+            .slice(0, 5);
+    }
+
+    // Допоміжні методи
+    showLoading(message, elementId = null) {
+        const target = elementId ? document.getElementById(elementId) : 
+            document.querySelector('.content-section.active');
+        
+        if (target) {
+            target.innerHTML = `<div class="loading">${message}</div>`;
+        }
+    }
+
+    showError(message, elementId = null) {
+        const target = elementId ? document.getElementById(elementId) : 
+            document.querySelector('.content-section.active');
+        
+        if (target) {
+            target.innerHTML = `
+                <div class="error">
+                    <h3>Помилка</h3>
+                    <p>${message}</p>
+                    <button onclick="wiki.showSection('main')" class="action-btn">На головну</button>
+                </div>
+            `;
+        }
+    }
+
+    updateUI() {
+        this.updateStats();
+        this.updateSidebar();
+        this.updateMainPage();
+    }
+
+    updateStats() {
+        document.getElementById('statArticles').textContent = this.pages.length;
+        document.getElementById('statCategories').textContent = this.getCategoriesWithCounts().length;
+        document.getElementById('statUpdated').textContent = 'сьогодні';
+        
+        // Футер
+        document.getElementById('footerArticles').textContent = `${this.pages.length} статей`;
+        document.getElementById('footerCategories').textContent = `${this.getCategoriesWithCounts().length} категорій`;
+    }
+
+    updateSidebar() {
+        const container = document.getElementById('sidebarNav');
+        container.innerHTML = this.buildSidebarNavigation();
+    }
+
+    buildSidebarNavigation() {
+        // Спрощена навігація по категоріям
+        const categories = this.getCategoriesWithCounts();
+        
+        return categories.map(cat => `
+            <a href="#" class="nav-link" onclick="wiki.showCategory('${cat.name}')">
+                ${cat.name} <small>(${cat.count})</small>
+            </a>
+        `).join('');
+    }
+
+    // Кешування
     cacheData() {
         const cache = {
             pages: this.pages,
+            structure: this.structure,
             timestamp: Date.now()
         };
         localStorage.setItem('wikiCache', JSON.stringify(cache));
@@ -606,87 +598,77 @@ class SecureHoRPWiki {
         if (cached) {
             try {
                 const cache = JSON.parse(cached);
+                // Перевірка актуальності кешу (12 годин)
                 if (Date.now() - cache.timestamp < 12 * 60 * 60 * 1000) {
                     this.pages = cache.pages;
+                    this.structure = cache.structure;
+                    this.buildSearchIndex();
                     return true;
                 }
             } catch (error) {
-                console.error('Помилка завантаження кешу:', error);
+                console.error('❌ Помилка завантаження кешу:', error);
             }
         }
         return false;
     }
 
-    // Решта методів (setupTheme, searchPages, convertMarkdownToHtml, etc.)
-    // залишаються аналогічними попередній версії
+    loadFallbackData() {
+        console.log('🔄 Завантаження тестових даних...');
+        this.pages = [
+            {
+                title: 'Головна сторінка',
+                path: 'main',
+                url: `${this.baseUrl}/pages/main.md`,
+                size: 1024,
+                category: 'Основне'
+            },
+            {
+                title: 'Python програмування',
+                path: 'programming/python',
+                url: `${this.baseUrl}/pages/programming/python.md`,
+                size: 2048,
+                category: 'Програмування'
+            },
+            {
+                title: 'Фізика для початківців',
+                path: 'science/physics',
+                url: `${this.baseUrl}/pages/science/physics.md`,
+                size: 1536,
+                category: 'Наука'
+            }
+        ];
+        this.buildSearchIndex();
+        this.updateUI();
+    }
+
+    // Додаткові функції
+    editArticle() {
+        const currentPage = this.pages.find(p => p.title === document.getElementById('articleTitle').textContent);
+        if (currentPage) {
+            window.open(`https://github.com/${this.repoOwner}/${this.repoName}/edit/main/pages/${currentPage.path}.md`, '_blank');
+        }
+    }
+
+    shareArticle() {
+        const title = document.getElementById('articleTitle').textContent;
+        const url = window.location.href;
+        
+        if (navigator.share) {
+            navigator.share({
+                title: title,
+                url: url
+            });
+        } else {
+            navigator.clipboard.writeText(url);
+            alert('Посилання скопійовано в буфер обміну!');
+        }
+    }
 }
 
 // Глобальний екземпляр
-const wiki = new SecureHoRPWiki();
+const wiki = new HoRPWiki();
 
 // Глобальні функції для HTML
-function toggleUserMenu() {
-    document.getElementById('userDropdown').classList.toggle('show');
-}
-
-function showLoginModal() {
-    wiki.showLoginModal();
-}
-
-function closeLoginModal() {
-    wiki.closeLoginModal();
-}
-
-function startGitHubAuth() {
-    wiki.startGitHubAuth();
-}
-
-function logout() {
-    wiki.logout();
-}
-
-function showCreateArticleModal() {
-    wiki.showCreateArticleModal();
-}
-
-function closeCreateArticleModal() {
-    wiki.closeCreateArticleModal();
-}
-
-function createArticle(event) {
-    event.preventDefault();
-    const formData = {
-        title: document.getElementById('articleTitleInput').value,
-        path: document.getElementById('articlePath').value,
-        category: document.getElementById('articleCategory').value,
-        content: document.getElementById('articleContentInput').value
-    };
-    return wiki.createArticle(formData);
-}
-
-function showEditArticleModal(article) {
-    wiki.showEditArticleModal(article);
-}
-
-function closeEditArticleModal() {
-    wiki.closeEditArticleModal();
-}
-
-function updateArticle(event) {
-    event.preventDefault();
-    const formData = {
-        path: document.getElementById('editArticlePath').value,
-        title: document.getElementById('editArticleTitle').value,
-        content: document.getElementById('editArticleContent').value
-    };
-    return wiki.updateArticle(formData);
-}
-
-function deleteArticle(path) {
-    return wiki.deleteArticle(path);
-}
-
-// Інші глобальні функції залишаються незмінними
 function performSearch() {
     wiki.performSearch();
 }
@@ -705,8 +687,6 @@ function showRandomPage() {
     if (wiki.pages.length > 0) {
         const randomPage = wiki.pages[Math.floor(Math.random() * wiki.pages.length)];
         wiki.loadPage(randomPage.path);
-    } else {
-        alert('Ще немає статей для перегляду');
     }
 }
 
