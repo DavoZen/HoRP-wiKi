@@ -26,8 +26,22 @@
                         <button class="theme-btn" data-theme="dark">🌙</button>
                         <button class="theme-btn" data-theme="auto">⚙️</button>
                     </div>
-                    <div class="user-menu">
-                        <button class="user-btn">👤</button>
+                    <div class="user-menu" id="userMenu">
+                        <button class="user-btn" onclick="toggleUserMenu()">👤</button>
+                        <div class="user-dropdown" id="userDropdown">
+                            <div class="user-info" id="userInfo">
+                                <div class="user-avatar" id="userAvatar"></div>
+                                <div class="user-details">
+                                    <div class="user-name" id="userName">Гість</div>
+                                    <div class="user-role" id="userRole">Не авторизований</div>
+                                </div>
+                            </div>
+                            <div class="user-actions">
+                                <button class="user-action-btn" onclick="showLoginModal()" id="loginBtn">Увійти через GitHub</button>
+                                <button class="user-action-btn" onclick="logout()" id="logoutBtn" style="display: none;">Вийти</button>
+                                <button class="user-action-btn" onclick="showProfile()" id="profileBtn" style="display: none;">Мій профіль</button>
+                            </div>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -41,8 +55,10 @@
                     <a href="#" class="nav-item" data-section="articles">Статті</a>
                     <a href="#" class="nav-item" data-section="categories">Категорії</a>
                     <a href="#" class="nav-item" data-section="random">Випадкова</a>
+                    <a href="#" class="nav-item" data-section="my-articles" id="myArticlesBtn" style="display: none;">Мої статті</a>
                 </div>
                 <div class="nav-tools">
+                    <a href="#" class="nav-item" onclick="showCreateArticleModal()" id="createArticleBtn" style="display: none;">➕ Створити статтю</a>
                     <a href="https://github.com/pisdukblaty/HoRP-wiKi" class="nav-item" target="_blank">Редагувати</a>
                     <a href="https://t.me/hriplinRP" class="nav-item" target="_blank">Telegram</a>
                 </div>
@@ -96,9 +112,18 @@
                                 <span class="stat-label">категорій</span>
                             </div>
                             <div class="stat-item">
-                                <span class="stat-number" id="statUpdated">сьогодні</span>
-                                <span class="stat-label">оновлено</span>
+                                <span class="stat-number" id="statUsers">0</span>
+                                <span class="stat-label">користувачів</span>
                             </div>
+                        </div>
+                    </div>
+
+                    <div class="sidebar-section" id="adminSection" style="display: none;">
+                        <h3>Адміністрування</h3>
+                        <div class="sidebar-tools">
+                            <a href="#" onclick="showUserManagement()" class="tool-link">👥 Користувачі</a>
+                            <a href="#" onclick="showSystemLogs()" class="tool-link">📊 Логи</a>
+                            <a href="#" onclick="showSettings()" class="tool-link">⚙️ Налаштування</a>
                         </div>
                     </div>
                 </aside>
@@ -110,6 +135,14 @@
                         <div class="welcome-content">
                             <h2>Ласкаво просимо до HoRP-wiKi</h2>
                             <p class="welcome-text">Вільна енциклопедія, яку може редагувати кожен. Приєднуйтесь до нашої спільноти!</p>
+                            
+                            <div class="auth-promo" id="authPromo">
+                                <div class="auth-card">
+                                    <h3>🔐 Безпечна спільнота</h3>
+                                    <p>Увійдіть через GitHub, щоб створювати та редагувати статті</p>
+                                    <button class="auth-btn" onclick="showLoginModal()">Увійти через GitHub</button>
+                                </div>
+                            </div>
                             
                             <div class="featured-grid">
                                 <div class="featured-card">
@@ -137,6 +170,20 @@
                         </div>
                         <div class="articles-list" id="articlesList">
                             <div class="loading">Завантаження статей...</div>
+                        </div>
+                    </section>
+
+                    <!-- My Articles -->
+                    <section id="my-articles-section" class="content-section">
+                        <div class="section-header">
+                            <h1>Мої статті</h1>
+                            <button class="create-btn" onclick="showCreateArticleModal()">➕ Створити статтю</button>
+                        </div>
+                        <div class="articles-list" id="myArticlesList">
+                            <div class="auth-required">
+                                <p>Увійдіть, щоб переглянути свої статті</p>
+                                <button class="auth-btn" onclick="showLoginModal()">Увійти через GitHub</button>
+                            </div>
                         </div>
                     </section>
 
@@ -171,10 +218,10 @@
                             <header class="article-header">
                                 <h1 id="articleTitle">Завантаження...</h1>
                                 <div class="article-meta">
+                                    <div class="article-author" id="articleAuthor"></div>
                                     <span class="last-modified" id="articleModified"></span>
-                                    <span class="article-actions">
-                                        <button onclick="editArticle()" class="action-btn">✏️ Редагувати</button>
-                                        <button onclick="shareArticle()" class="action-btn">📤 Поділитися</button>
+                                    <span class="article-actions" id="articleActions">
+                                        <!-- Дії будуть додані динамічно -->
                                     </span>
                                 </div>
                             </header>
@@ -196,6 +243,17 @@
                                 </div>
                             </footer>
                         </article>
+                    </section>
+
+                    <!-- User Management (Admin only) -->
+                    <section id="users-section" class="content-section">
+                        <div class="section-header">
+                            <h1>Керування користувачами</h1>
+                            <div class="admin-badge">🔐 Адміністратор</div>
+                        </div>
+                        <div class="users-list" id="usersList">
+                            <!-- Список користувачів -->
+                        </div>
                     </section>
                 </div>
             </div>
@@ -229,16 +287,111 @@
                         <div class="footer-stats">
                             <span id="footerArticles">0 статей</span>
                             <span id="footerCategories">0 категорій</span>
-                            <span id="footerUpdated">оновлено сьогодні</span>
+                            <span id="footerUsers">0 користувачів</span>
                         </div>
                     </div>
                 </div>
                 
                 <div class="footer-bottom">
-                    <p>HoRP-wiKi © 2024 | Автоматично оновлювана енциклопедія</p>
+                    <p>HoRP-wiKi © 2024 | Захищена енциклопедія з авторизацією</p>
                 </div>
             </div>
         </footer>
+    </div>
+
+    <!-- Модальні вікна -->
+    <div id="loginModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>Авторизація через GitHub</h3>
+                <button class="modal-close" onclick="closeLoginModal()">×</button>
+            </div>
+            <div class="modal-body">
+                <p>Увійдіть через GitHub, щоб створювати та редагувати статті</p>
+                <div class="auth-options">
+                    <button class="github-auth-btn" onclick="startGitHubAuth()">
+                        <span class="github-icon">🐙</span>
+                        Увійти через GitHub
+                    </button>
+                </div>
+                <div class="auth-info">
+                    <p><strong>Переваги авторизації:</strong></p>
+                    <ul>
+                        <li>✏️ Створення власних статей</li>
+                        <li>🔒 Захист ваших статей</li>
+                        <li>📊 Особиста статистика</li>
+                        <li>👥 Участь у спільноті</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div id="createArticleModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>Створення нової статті</h3>
+                <button class="modal-close" onclick="closeCreateArticleModal()">×</button>
+            </div>
+            <div class="modal-body">
+                <form id="createArticleForm" onsubmit="return createArticle(event)">
+                    <div class="form-group">
+                        <label for="articleTitleInput">Назва статті:</label>
+                        <input type="text" id="articleTitleInput" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="articleCategory">Категорія:</label>
+                        <select id="articleCategory" required>
+                            <option value="">Оберіть категорію</option>
+                            <option value="programming">Програмування</option>
+                            <option value="science">Наука</option>
+                            <option value="history">Історія</option>
+                            <option value="art">Мистецтво</option>
+                            <option value="other">Інше</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="articlePath">Шлях статті:</label>
+                        <input type="text" id="articlePath" placeholder="наприклад: моя-стаття" required>
+                        <small>Використовуйте латинські літери, цифри та дефіси</small>
+                    </div>
+                    <div class="form-group">
+                        <label for="articleContentInput">Зміст статті (Markdown):</label>
+                        <textarea id="articleContentInput" rows="10" required></textarea>
+                    </div>
+                    <div class="form-actions">
+                        <button type="button" class="btn-secondary" onclick="closeCreateArticleModal()">Скасувати</button>
+                        <button type="submit" class="btn-primary">Створити статтю</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <div id="editArticleModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>Редагування статті</h3>
+                <button class="modal-close" onclick="closeEditArticleModal()">×</button>
+            </div>
+            <div class="modal-body">
+                <form id="editArticleForm" onsubmit="return updateArticle(event)">
+                    <input type="hidden" id="editArticlePath">
+                    <div class="form-group">
+                        <label for="editArticleTitle">Назва статті:</label>
+                        <input type="text" id="editArticleTitle" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="editArticleContent">Зміст статті (Markdown):</label>
+                        <textarea id="editArticleContent" rows="15" required></textarea>
+                    </div>
+                    <div class="form-actions">
+                        <button type="button" class="btn-secondary" onclick="closeEditArticleModal()">Скасувати</button>
+                        <button type="submit" class="btn-primary">Зберегти зміни</button>
+                    </div>
+                </form>
+            </div>
+        </div>
     </div>
 
     <script src="script.js"></script>
