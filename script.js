@@ -439,18 +439,28 @@ class HoRPWiki {
     }
 
     convertMarkdownToHtml(markdown) {
-        return markdown
-            .replace(/^### (.*$)/gim, '<h3>$1</h3>')
-            .replace(/^## (.*$)/gim, '<h2>$1</h2>')
-            .replace(/^# (.*$)/gim, '<h1>$1</h1>')
-            .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
-            .replace(/\*(.*?)\*/g, '<em>$1</em>')
-            .replace(/`(.*?)`/g, '<code>$1</code>')
-            .replace(/```(\w+)?\n([\s\S]*?)```/g, '<pre><code>$2</code></pre>')
-            .replace(/!\[(.*?)\]\((.*?)\)/g, '<img src="$2" alt="$1" loading="lazy">')
-            .replace(/\[(.*?)\]\((.*?)\)/g, '<a href="$2" target="_blank">$1</a>')
-            .replace(/\n\n/g, '</p><p>')
-            .replace(/\n/g, '<br>');
+    return markdown
+        .replace(/^### (.*$)/gim, '<h3>$1</h3>')
+        .replace(/^## (.*$)/gim, '<h2>$1</h2>')
+        .replace(/^# (.*$)/gim, '<h1>$1</h1>')
+        .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
+        .replace(/\*(.*?)\*/g, '<em>$1</em>')
+        .replace(/`(.*?)`/g, '<code>$1</code>')
+        .replace(/```(\w+)?\n([\s\S]*?)```/g, '<pre><code>$2</code></pre>')
+        .replace(/!\[(.*?)\]\((.*?)\)/g, (match, alt, src) => {
+            // Якщо GitHub blob, конвертуємо у raw
+            if (src.includes('github.com')) {
+                src = src.replace('github.com', 'raw.githubusercontent.com')
+                         .replace('/blob/', '/');
+            } else if (!src.startsWith('http')) {
+                // Відносний шлях до pages
+                src = `${this.baseUrl}/pages/${src}`;
+            }
+            return `<img src="${src}" alt="${alt}" loading="lazy">`;
+        })
+        .replace(/\[(.*?)\]\((.*?)\)/g, '<a href="$2" target="_blank">$1</a>')
+        .replace(/\n\n/g, '</p><p>')
+        .replace(/\n/g, '<br>');
     }
 
     updateArticleInfo(page) {
