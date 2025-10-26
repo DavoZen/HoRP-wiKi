@@ -18,7 +18,7 @@ class HoRPWiki {
         await this.loadData();
         this.updateUI();
         
-        console.log('✅ HoRP-wiKi готовий до роботи');
+        console.log(' HoRP-wiKi готовий до роботи');
     }
 
     setupTheme() {
@@ -85,14 +85,14 @@ class HoRPWiki {
         try {
             const contents = await this.fetchGitHubContents('pages');
             this.pages = await this.buildPagesList(contents, 'pages');
-            console.log(`✅ Знайдено ${this.pages.length} сторінок`);
+            console.log(` Знайдено ${this.pages.length} сторінок`);
             
         } catch (error) {
-            console.error('❌ Помилка сканування:', error);
+            console.error(' Помилка сканування:', error);
             
             // Якщо папка pages не існує, спробуємо знайти .md файли в корені
             try {
-                console.log('🔄 Спроба знайти файли в корені репозиторію...');
+                console.log(' Спроба знайти файли в корені репозиторію...');
                 const rootContents = await this.fetchGitHubContents('');
                 const mdFiles = rootContents.filter(item => 
                     item.type === 'file' && item.name.endsWith('.md') && item.name !== 'README.md'
@@ -105,10 +105,10 @@ class HoRPWiki {
                     category: 'Основне'
                 }));
                 
-                console.log(`✅ Знайдено ${this.pages.length} .md файлів у корені`);
+                console.log(` Знайдено ${this.pages.length} .md файлів у корені`);
                 
             } catch (rootError) {
-                console.error('❌ Помилка пошуку в корені:', rootError);
+                console.error(' Помилка пошуку в корені:', rootError);
                 throw new Error('Не вдалося знайти жодної сторінки у репозиторії');
             }
         }
@@ -138,7 +138,7 @@ class HoRPWiki {
                     const subPages = await this.buildPagesList(subContents, item.path);
                     pages.push(...subPages);
                 } catch (error) {
-                    console.error(`❌ Помилка завантаження папки ${item.path}:`, error);
+                    console.error(` Помилка завантаження папки ${item.path}:`, error);
                 }
             } else if (item.type === 'file' && item.name.endsWith('.md')) {
                 // Додаємо Markdown файл
@@ -167,7 +167,7 @@ class HoRPWiki {
             timestamp: Date.now()
         };
         localStorage.setItem('wikiCache', JSON.stringify(cache));
-        console.log('💾 Дані збережено в кеш');
+        console.log(' Дані збережено в кеш');
     }
 
     loadFromCache() {
@@ -181,7 +181,7 @@ class HoRPWiki {
                     return true;
                 }
             } catch (error) {
-                console.error('❌ Помилка завантаження кешу:', error);
+                console.error(' Помилка завантаження кешу:', error);
             }
         }
         return false;
@@ -391,7 +391,7 @@ class HoRPWiki {
         }
 
         try {
-            console.log(`📖 Завантаження: ${page.url}`);
+            console.log(` Завантаження: ${page.url}`);
             const response = await fetch(page.url);
             
             if (!response.ok) {
@@ -402,7 +402,7 @@ class HoRPWiki {
             this.displayArticle(page, content);
             
         } catch (error) {
-            console.error('❌ Помилка завантаження статті:', error);
+            console.error(' Помилка завантаження статті:', error);
             this.showError('Помилка завантаження статті', 'articleContent');
         }
     }
