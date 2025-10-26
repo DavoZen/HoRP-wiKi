@@ -109,7 +109,9 @@ class HoRPWiki {
                 
             } catch (rootError) {
                 console.error('❌ Помилка пошуку в корені:', rootError);
-                throw new Error('Не вдалося знайти жодної сторінки у репозиторії');
+                // Не кидаємо помилку далі, а просто залишаємо пустий список сторінок
+                this.pages = [];
+                console.log('ℹ️ У репозиторії не знайдено жодної сторінки');
             }
         }
     }
@@ -289,7 +291,12 @@ class HoRPWiki {
         const container = document.getElementById('popularArticles');
         
         if (this.pages.length === 0) {
-            container.innerHTML = '<div class="no-data">Ще немає статей</div>';
+            container.innerHTML = `
+                <div class="empty-state">
+                    <p>📝 Ще немає статей</p>
+                    <small><a href="https://github.com/pisdukblaty/HoRP-wiKi" target="_blank">Додайте першу статтю на GitHub</a></small>
+                </div>
+            `;
             return;
         }
         
@@ -304,7 +311,11 @@ class HoRPWiki {
         const categories = this.getCategoriesWithCounts().slice(0, 8);
         
         if (categories.length === 0) {
-            container.innerHTML = '<div class="no-data">Ще немає категорій</div>';
+            container.innerHTML = `
+                <div class="empty-state">
+                    <p>📁 Ще немає категорій</p>
+                </div>
+            `;
             return;
         }
         
@@ -319,7 +330,26 @@ class HoRPWiki {
         
         if (this.pages.length === 0) {
             count.textContent = '0 статей';
-            container.innerHTML = '<div class="no-data">Ще немає статей. Додайте першу статтю до репозиторію!</div>';
+            container.innerHTML = `
+                <div class="empty-state">
+                    <h3>📚 Ще немає статей</h3>
+                    <p>Схоже, у вашому репозиторії ще немає жодної статті.</p>
+                    <p>Щоб додати статтю:</p>
+                    <ol>
+                        <li>Перейдіть на <a href="https://github.com/pisdukblaty/HoRP-wiKi" target="_blank">GitHub репозиторій</a></li>
+                        <li>Створіть папку <code>pages</code> (якщо її ще немає)</li>
+                        <li>Додайте файли з розширенням <code>.md</code> у папку <code>pages</code></li>
+                        <li>Натисніть кнопку "Оновити" у вікі</li>
+                    </ol>
+                    <p><strong>Приклад структури:</strong></p>
+                    <pre><code>pages/
+├── головна.md
+├── программування/
+│   └── python.md
+└── наука/
+    └── фізика.md</code></pre>
+                </div>
+            `;
             return;
         }
         
@@ -338,7 +368,12 @@ class HoRPWiki {
         const categories = this.getCategoriesWithCounts();
         
         if (categories.length === 0) {
-            container.innerHTML = '<div class="no-data">Ще немає категорій</div>';
+            container.innerHTML = `
+                <div class="empty-state">
+                    <h3>📂 Ще немає категорій</h3>
+                    <p>Категорії з'являться автоматично, коли ви додасте статті у різних папках.</p>
+                </div>
+            `;
             return;
         }
         
@@ -519,7 +554,11 @@ class HoRPWiki {
         const categories = this.getCategoriesWithCounts();
         
         if (categories.length === 0) {
-            container.innerHTML = '<div class="no-data">Ще немає категорій</div>';
+            container.innerHTML = `
+                <div class="empty-state">
+                    <p>📁 Ще немає категорій</p>
+                </div>
+            `;
             return;
         }
         
