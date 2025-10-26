@@ -1,6 +1,134 @@
-/* Стилі для авторизації */
-.user-menu {
-    position: relative;
+/* Стилі Вікіпедії з темами */
+:root {
+    /* Світла тема (за замовчуванням) */
+    --bg-primary: #ffffff;
+    --bg-secondary: #f8f9fa;
+    --bg-tertiary: #eaecf0;
+    --border: #a2a9b1;
+    --border-light: #c8ccd1;
+    --text-primary: #202122;
+    --text-secondary: #54595d;
+    --text-muted: #72777d;
+    --link: #3366cc;
+    --link-hover: #447ff5;
+    --accent: #36c;
+    --shadow: 0 1px 4px rgba(0,0,0,0.1);
+    --radius: 2px;
+}
+
+[data-theme="dark"] {
+    --bg-primary: #202122;
+    --bg-secondary: #27292d;
+    --bg-tertiary: #2f3136;
+    --border: #4f545c;
+    --border-light: #5a5f67;
+    --text-primary: #e8e8e8;
+    --text-secondary: #a8a8a8;
+    --text-muted: #8b8b8b;
+    --link: #6699ff;
+    --link-hover: #88aaff;
+    --accent: #4a8eff;
+}
+
+[data-theme="auto"] {
+    /* Автоматична тема буде визначатися через media query */
+}
+
+/* Базові стилі */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Helvetica Neue', Arial, sans-serif;
+    background-color: var(--bg-primary);
+    color: var(--text-primary);
+    line-height: 1.6;
+    transition: background-color 0.3s ease, color 0.3s ease;
+}
+
+.page-wrapper {
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+}
+
+/* Хедер */
+.wiki-header {
+    background: var(--bg-primary);
+    border-bottom: 1px solid var(--border-light);
+    padding: 0.5rem 0;
+    position: sticky;
+    top: 0;
+    z-index: 100;
+    box-shadow: var(--shadow);
+}
+
+.header-container {
+    max-width: 1400px;
+    margin: 0 auto;
+    padding: 0 2rem;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.logo-section {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+}
+
+.logo {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.logo-icon {
+    font-size: 2rem;
+}
+
+.logo h1 {
+    font-size: 1.75rem;
+    font-weight: 400;
+    color: var(--text-primary);
+}
+
+.tagline {
+    color: var(--text-muted);
+    font-size: 0.9rem;
+}
+
+.header-controls {
+    display: flex;
+    gap: 0.5rem;
+    align-items: center;
+}
+
+.theme-switcher {
+    display: flex;
+    background: var(--bg-secondary);
+    border-radius: 20px;
+    padding: 0.25rem;
+    border: 1px solid var(--border-light);
+}
+
+.theme-btn {
+    background: none;
+    border: none;
+    padding: 0.5rem;
+    border-radius: 50%;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+    font-size: 0.9rem;
+}
+
+.theme-btn.active {
+    background: var(--bg-primary);
+    box-shadow: var(--shadow);
 }
 
 .user-btn {
@@ -10,331 +138,429 @@
     border-radius: 50%;
     cursor: pointer;
     font-size: 0.9rem;
-    transition: all 0.3s ease;
 }
 
-.user-btn:hover {
-    background: var(--bg-tertiary);
-}
-
-.user-dropdown {
-    position: absolute;
-    top: 100%;
-    right: 0;
-    background: var(--bg-primary);
-    border: 1px solid var(--border-light);
-    border-radius: var(--radius);
-    box-shadow: var(--shadow);
-    min-width: 200px;
-    z-index: 1000;
-    display: none;
-}
-
-.user-dropdown.show {
-    display: block;
-}
-
-.user-info {
-    padding: 1rem;
-    border-bottom: 1px solid var(--border-light);
-    display: flex;
-    align-items: center;
-    gap: 0.75rem;
-}
-
-.user-avatar {
-    width: 40px;
-    height: 40px;
-    border-radius: 50%;
-    background: var(--accent);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    color: white;
-    font-weight: bold;
-}
-
-.user-details {
-    flex: 1;
-}
-
-.user-name {
-    font-weight: 600;
-    color: var(--text-primary);
-}
-
-.user-role {
-    font-size: 0.8rem;
-    color: var(--text-muted);
-}
-
-.user-actions {
-    padding: 0.5rem;
-}
-
-.user-action-btn {
-    width: 100%;
-    padding: 0.75rem;
-    background: none;
-    border: 1px solid var(--border-light);
-    border-radius: var(--radius);
-    cursor: pointer;
-    color: var(--text-primary);
-    transition: all 0.3s ease;
-    text-align: left;
-    margin-bottom: 0.25rem;
-}
-
-.user-action-btn:hover {
+/* Навігація */
+.wiki-nav {
     background: var(--bg-secondary);
-}
-
-.user-action-btn:last-child {
-    margin-bottom: 0;
-}
-
-/* Модальні вікна */
-.modal {
-    display: none;
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    background: rgba(0, 0, 0, 0.5);
-    z-index: 2000;
-    align-items: center;
-    justify-content: center;
-}
-
-.modal.show {
-    display: flex;
-}
-
-.modal-content {
-    background: var(--bg-primary);
-    border-radius: 8px;
-    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
-    max-width: 500px;
-    width: 90%;
-    max-height: 90vh;
-    overflow-y: auto;
-}
-
-.modal-header {
-    padding: 1.5rem;
     border-bottom: 1px solid var(--border-light);
+}
+
+.nav-container {
+    max-width: 1400px;
+    margin: 0 auto;
+    padding: 0 2rem;
     display: flex;
     justify-content: space-between;
     align-items: center;
 }
 
-.modal-header h3 {
-    margin: 0;
-    color: var(--text-primary);
-}
-
-.modal-close {
-    background: none;
-    border: none;
-    font-size: 1.5rem;
-    cursor: pointer;
-    color: var(--text-muted);
-    padding: 0;
-    width: 30px;
-    height: 30px;
+.nav-main, .nav-tools {
     display: flex;
-    align-items: center;
-    justify-content: center;
+    gap: 0;
 }
 
-.modal-close:hover {
+.nav-item {
+    padding: 0.75rem 1.5rem;
     color: var(--text-primary);
+    text-decoration: none;
+    border-bottom: 2px solid transparent;
+    transition: all 0.3s ease;
+    font-weight: 500;
 }
 
-.modal-body {
-    padding: 1.5rem;
+.nav-item:hover {
+    background: var(--bg-tertiary);
+    border-bottom-color: var(--border);
 }
 
-/* Форми */
-.form-group {
-    margin-bottom: 1.5rem;
+.nav-item.active {
+    border-bottom-color: var(--accent);
+    color: var(--accent);
 }
 
-.form-group label {
-    display: block;
-    margin-bottom: 0.5rem;
-    font-weight: 600;
-    color: var(--text-primary);
+/* Пошук */
+.search-section {
+    background: var(--bg-tertiary);
+    padding: 2rem 0;
+    border-bottom: 1px solid var(--border-light);
 }
 
-.form-group input,
-.form-group select,
-.form-group textarea {
-    width: 100%;
-    padding: 0.75rem;
-    border: 1px solid var(--border-light);
-    border-radius: var(--radius);
+.search-container {
+    max-width: 800px;
+    margin: 0 auto;
+    padding: 0 2rem;
+    position: relative;
+}
+
+.search-box {
+    display: flex;
     background: var(--bg-primary);
-    color: var(--text-primary);
-    font-family: inherit;
-    font-size: 0.9rem;
+    border: 2px solid var(--border);
+    border-radius: var(--radius);
+    overflow: hidden;
+    box-shadow: var(--shadow);
+    transition: border-color 0.3s ease;
 }
 
-.form-group input:focus,
-.form-group select:focus,
-.form-group textarea:focus {
-    outline: none;
+.search-box:focus-within {
     border-color: var(--accent);
 }
 
-.form-group small {
-    display: block;
-    margin-top: 0.25rem;
-    color: var(--text-muted);
-    font-size: 0.8rem;
-}
-
-.form-actions {
-    display: flex;
-    gap: 1rem;
-    justify-content: flex-end;
-    margin-top: 2rem;
-}
-
-.btn-primary {
-    background: var(--accent);
-    color: white;
+.search-box input {
+    flex: 1;
     border: none;
-    padding: 0.75rem 1.5rem;
-    border-radius: var(--radius);
-    cursor: pointer;
-    font-weight: 600;
-    transition: background-color 0.3s ease;
-}
-
-.btn-primary:hover {
-    background: var(--link-hover);
-}
-
-.btn-secondary {
-    background: var(--bg-secondary);
+    padding: 1rem 1.5rem;
+    font-size: 1.1rem;
+    background: transparent;
     color: var(--text-primary);
-    border: 1px solid var(--border-light);
-    padding: 0.75rem 1.5rem;
-    border-radius: var(--radius);
-    cursor: pointer;
-    transition: all 0.3s ease;
+    outline: none;
 }
 
-.btn-secondary:hover {
+.search-button {
+    background: var(--bg-secondary);
+    border: none;
+    padding: 1rem 1.5rem;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+    border-left: 1px solid var(--border-light);
+}
+
+.search-button:hover {
     background: var(--bg-tertiary);
 }
 
-/* Кнопки авторизації */
-.auth-promo {
-    margin: 2rem 0;
+.search-suggestions {
+    position: absolute;
+    top: 100%;
+    left: 0;
+    right: 0;
+    background: var(--bg-primary);
+    border: 1px solid var(--border-light);
+    border-top: none;
+    border-radius: 0 0 var(--radius) var(--radius);
+    box-shadow: var(--shadow);
+    display: none;
+    z-index: 10;
 }
 
-.auth-card {
+.search-suggestion {
+    padding: 0.75rem 1.5rem;
+    cursor: pointer;
+    border-bottom: 1px solid var(--border-light);
+    transition: background-color 0.3s ease;
+}
+
+.search-suggestion:hover {
+    background: var(--bg-secondary);
+}
+
+.search-suggestion:last-child {
+    border-bottom: none;
+}
+
+/* Основний контент */
+.wiki-main {
+    flex: 1;
+    padding: 2rem 0;
+}
+
+.main-container {
+    max-width: 1400px;
+    margin: 0 auto;
+    padding: 0 2rem;
+    display: grid;
+    grid-template-columns: 250px 1fr;
+    gap: 2rem;
+}
+
+/* Бічна панель */
+.wiki-sidebar {
+    position: sticky;
+    top: 120px;
+    height: fit-content;
+}
+
+.sidebar-section {
     background: var(--bg-secondary);
     border: 1px solid var(--border-light);
-    border-radius: 8px;
-    padding: 2rem;
-    text-align: center;
+    border-radius: var(--radius);
+    margin-bottom: 1.5rem;
+    overflow: hidden;
 }
 
-.auth-card h3 {
+.sidebar-section h3 {
+    background: var(--bg-tertiary);
+    padding: 0.75rem 1rem;
+    font-size: 0.9rem;
+    font-weight: 600;
+    color: var(--text-primary);
+    border-bottom: 1px solid var(--border-light);
+}
+
+.sidebar-nav, .sidebar-tools {
+    padding: 0.5rem 0;
+}
+
+.nav-link {
+    display: block;
+    padding: 0.5rem 1rem;
+    color: var(--link);
+    text-decoration: none;
+    transition: background-color 0.3s ease;
+    font-size: 0.9rem;
+}
+
+.nav-link:hover {
+    background: var(--bg-tertiary);
+    text-decoration: underline;
+}
+
+.tool-link {
+    display: block;
+    padding: 0.5rem 1rem;
+    color: var(--text-primary);
+    text-decoration: none;
+    transition: background-color 0.3s ease;
+    font-size: 0.9rem;
+}
+
+.tool-link:hover {
+    background: var(--bg-tertiary);
+}
+
+.stats-widget {
+    padding: 1rem;
+}
+
+.stat-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0.5rem 0;
+    border-bottom: 1px solid var(--border-light);
+}
+
+.stat-item:last-child {
+    border-bottom: none;
+}
+
+.stat-number {
+    font-weight: 600;
+    color: var(--accent);
+}
+
+.stat-label {
+    color: var(--text-muted);
+    font-size: 0.9rem;
+}
+
+/* Контентна область */
+.content-area {
+    min-height: 600px;
+}
+
+.content-section {
+    display: none;
+    animation: fadeIn 0.3s ease;
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
+}
+
+.content-section.active {
+    display: block;
+}
+
+/* Головна сторінка */
+.welcome-content {
+    max-width: 800px;
+}
+
+.welcome-content h2 {
+    font-size: 2rem;
+    font-weight: 400;
     margin-bottom: 1rem;
     color: var(--text-primary);
 }
 
-.auth-btn {
-    background: var(--accent);
-    color: white;
-    border: none;
-    padding: 1rem 2rem;
-    border-radius: var(--radius);
-    cursor: pointer;
-    font-weight: 600;
-    transition: background-color 0.3s ease;
-    margin-top: 1rem;
+.welcome-text {
+    font-size: 1.1rem;
+    color: var(--text-secondary);
+    margin-bottom: 2rem;
+    line-height: 1.8;
 }
 
-.auth-btn:hover {
-    background: var(--link-hover);
+.featured-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 2rem;
+    margin-top: 2rem;
 }
 
-.github-auth-btn {
-    background: #24292e;
-    color: white;
-    border: none;
-    padding: 1rem 2rem;
-    border-radius: var(--radius);
-    cursor: pointer;
-    font-weight: 600;
-    transition: background-color 0.3s ease;
-    display: flex;
-    align-items: center;
-    gap: 0.5rem;
-    justify-content: center;
-    width: 100%;
-}
-
-.github-auth-btn:hover {
-    background: #2c3036;
-}
-
-.github-icon {
-    font-size: 1.2rem;
-}
-
-.auth-info {
-    margin-top: 1.5rem;
-    padding: 1rem;
+.featured-card {
     background: var(--bg-secondary);
+    border: 1px solid var(--border-light);
     border-radius: var(--radius);
-    text-align: left;
+    padding: 1.5rem;
 }
 
-.auth-info ul {
-    margin: 0.5rem 0;
-    padding-left: 1.5rem;
+.featured-card h3 {
+    margin-bottom: 1rem;
+    font-weight: 600;
+    color: var(--text-primary);
 }
 
-.auth-info li {
-    margin: 0.25rem 0;
-}
-
-.auth-required {
-    text-align: center;
-    padding: 3rem;
-    color: var(--text-muted);
-}
-
-/* Статуси статей */
-.article-author {
+.article-list, .category-list {
     display: flex;
-    align-items: center;
+    flex-direction: column;
     gap: 0.5rem;
+}
+
+.article-link, .category-link {
+    color: var(--link);
+    text-decoration: none;
+    padding: 0.25rem 0;
+    transition: color 0.3s ease;
+}
+
+.article-link:hover, .category-link:hover {
+    text-decoration: underline;
+    color: var(--link-hover);
+}
+
+/* Заголовки секцій */
+.section-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 2rem;
+    padding-bottom: 1rem;
+    border-bottom: 1px solid var(--border-light);
+}
+
+.section-header h1 {
+    font-size: 1.75rem;
+    font-weight: 400;
+    color: var(--text-primary);
+}
+
+.page-count, .search-meta {
+    color: var(--text-muted);
+    font-size: 0.9rem;
+}
+
+/* Списки */
+.articles-list, .search-results {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+}
+
+.article-card, .search-result {
+    background: var(--bg-secondary);
+    border: 1px solid var(--border-light);
+    border-radius: var(--radius);
+    padding: 1.5rem;
+    transition: all 0.3s ease;
+    cursor: pointer;
+}
+
+.article-card:hover, .search-result:hover {
+    border-color: var(--accent);
+    box-shadow: var(--shadow);
+}
+
+.article-card h3, .search-result h3 {
+    color: var(--link);
+    margin-bottom: 0.5rem;
+    font-weight: 600;
+}
+
+.article-path, .search-path {
+    color: var(--text-muted);
+    font-size: 0.9rem;
+    font-family: monospace;
     margin-bottom: 0.5rem;
 }
 
-.author-avatar {
-    width: 24px;
-    height: 24px;
-    border-radius: 50%;
-    background: var(--accent);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    color: white;
-    font-size: 0.7rem;
-    font-weight: bold;
+.search-excerpt {
+    color: var(--text-secondary);
+    font-size: 0.9rem;
+    line-height: 1.5;
 }
 
-.author-name {
-    color: var(--text-secondary);
+/* Категорії */
+.categories-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+    gap: 1.5rem;
+}
+
+.category-card {
+    background: var(--bg-secondary);
+    border: 1px solid var(--border-light);
+    border-radius: var(--radius);
+    padding: 1.5rem;
+    transition: all 0.3s ease;
+}
+
+.category-card:hover {
+    border-color: var(--accent);
+    box-shadow: var(--shadow);
+}
+
+.category-card h3 {
+    color: var(--link);
+    margin-bottom: 1rem;
+    font-weight: 600;
+}
+
+.category-stats {
+    color: var(--text-muted);
+    font-size: 0.9rem;
+}
+
+/* Стаття */
+.breadcrumbs {
+    margin-bottom: 1.5rem;
+    color: var(--text-muted);
+    font-size: 0.9rem;
+}
+
+.breadcrumbs a {
+    color: var(--link);
+    text-decoration: none;
+}
+
+.breadcrumbs a:hover {
+    text-decoration: underline;
+}
+
+.wiki-article {
+    background: var(--bg-primary);
+}
+
+.article-header {
+    margin-bottom: 2rem;
+    padding-bottom: 1rem;
+    border-bottom: 1px solid var(--border-light);
+}
+
+.article-header h1 {
+    font-size: 1.75rem;
+    font-weight: 400;
+    color: var(--text-primary);
+    margin-bottom: 1rem;
+}
+
+.article-meta {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    color: var(--text-muted);
     font-size: 0.9rem;
 }
 
@@ -356,204 +582,329 @@
 
 .action-btn:hover {
     background: var(--bg-tertiary);
+    border-color: var(--border);
 }
 
-.action-btn.edit {
-    background: var(--accent);
-    color: white;
-    border-color: var(--accent);
+/* Контент статті */
+.article-content {
+    line-height: 1.7;
+    font-size: 0.875rem;
 }
 
-.action-btn.edit:hover {
-    background: var(--link-hover);
+.article-content h2 {
+    font-size: 1.5rem;
+    font-weight: 400;
+    margin: 2rem 0 1rem 0;
+    padding-bottom: 0.5rem;
+    border-bottom: 1px solid var(--border-light);
+    color: var(--text-primary);
 }
 
-.action-btn.delete {
-    background: #dc3545;
-    color: white;
-    border-color: #dc3545;
+.article-content h3 {
+    font-size: 1.25rem;
+    font-weight: 500;
+    margin: 1.5rem 0 1rem 0;
+    color: var(--text-primary);
 }
 
-.action-btn.delete:hover {
-    background: #c82333;
+.article-content p {
+    margin: 1rem 0;
+    text-align: justify;
 }
 
-.action-btn:disabled {
-    opacity: 0.5;
-    cursor: not-allowed;
+.article-content ul, .article-content ol {
+    margin: 1rem 0 1rem 2rem;
 }
 
-/* Адмін-панель */
-.admin-badge {
-    background: #dc3545;
-    color: white;
-    padding: 0.25rem 0.75rem;
-    border-radius: 12px;
-    font-size: 0.8rem;
-    font-weight: 600;
+.article-content li {
+    margin: 0.5rem 0;
 }
 
-.users-list {
-    display: flex;
-    flex-direction: column;
-    gap: 1rem;
+.article-content code {
+    background: var(--bg-tertiary);
+    padding: 0.2rem 0.4rem;
+    border-radius: var(--radius);
+    font-family: 'Courier New', monospace;
+    font-size: 0.85em;
+    border: 1px solid var(--border-light);
 }
 
-.user-card {
-    background: var(--bg-secondary);
+.article-content pre {
+    background: var(--bg-tertiary);
     border: 1px solid var(--border-light);
     border-radius: var(--radius);
-    padding: 1.5rem;
-    display: flex;
-    align-items: center;
-    gap: 1rem;
+    padding: 1rem;
+    overflow-x: auto;
+    margin: 1rem 0;
+    font-family: 'Courier New', monospace;
+    font-size: 0.85em;
+    line-height: 1.4;
 }
 
-.user-card-avatar {
-    width: 50px;
-    height: 50px;
-    border-radius: 50%;
-    background: var(--accent);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    color: white;
-    font-weight: bold;
-    font-size: 1.2rem;
+.article-content blockquote {
+    border-left: 4px solid var(--border);
+    padding-left: 1rem;
+    margin: 1rem 0;
+    color: var(--text-secondary);
+    font-style: italic;
 }
 
-.user-card-info {
-    flex: 1;
+.article-content table {
+    width: 100%;
+    border-collapse: collapse;
+    margin: 1rem 0;
+    font-size: 0.85em;
 }
 
-.user-card-name {
+.article-content th, .article-content td {
+    border: 1px solid var(--border-light);
+    padding: 0.5rem;
+    text-align: left;
+}
+
+.article-content th {
+    background: var(--bg-tertiary);
+    font-weight: 600;
+}
+
+.article-content img {
+    max-width: 100%;
+    height: auto;
+    border-radius: var(--radius);
+    box-shadow: var(--shadow);
+    margin: 1rem 0;
+}
+
+.article-footer {
+    margin-top: 3rem;
+    padding-top: 2rem;
+    border-top: 1px solid var(--border-light);
+}
+
+.article-info {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 2rem;
+}
+
+.info-section h4 {
+    margin-bottom: 0.5rem;
     font-weight: 600;
     color: var(--text-primary);
-    margin-bottom: 0.25rem;
 }
 
-.user-card-role {
+/* Футер */
+.wiki-footer {
+    background: var(--bg-secondary);
+    border-top: 1px solid var(--border-light);
+    margin-top: 4rem;
+}
+
+.footer-container {
+    max-width: 1400px;
+    margin: 0 auto;
+    padding: 0 2rem;
+}
+
+.footer-content {
+    display: grid;
+    grid-template-columns: 2fr 1fr 1fr 1fr;
+    gap: 2rem;
+    padding: 3rem 0 2rem 0;
+}
+
+.footer-section h4 {
+    margin-bottom: 1rem;
+    font-weight: 600;
+    color: var(--text-primary);
+}
+
+.footer-section a {
+    display: block;
+    color: var(--link);
+    text-decoration: none;
+    margin-bottom: 0.5rem;
+    transition: color 0.3s ease;
+}
+
+.footer-section a:hover {
+    text-decoration: underline;
+}
+
+.footer-stats {
+    display: flex;
+    flex-direction: column;
+    gap: 0.25rem;
     color: var(--text-muted);
     font-size: 0.9rem;
 }
 
-.user-card-stats {
-    color: var(--text-secondary);
-    font-size: 0.8rem;
+.footer-bottom {
+    border-top: 1px solid var(--border-light);
+    padding: 1.5rem 0;
+    text-align: center;
+    color: var(--text-muted);
+    font-size: 0.9rem;
 }
 
-.user-card-actions {
-    display: flex;
-    gap: 0.5rem;
+/* Утиліти */
+.loading {
+    text-align: center;
+    color: var(--text-muted);
+    padding: 2rem;
+    font-style: italic;
 }
 
-.role-badge {
-    padding: 0.25rem 0.5rem;
-    border-radius: 8px;
-    font-size: 0.7rem;
-    font-weight: 600;
-}
-
-.role-admin {
-    background: #dc3545;
-    color: white;
-}
-
-.role-editor {
-    background: #fd7e14;
-    color: white;
-}
-
-.role-user {
-    background: var(--accent);
-    color: white;
+.hidden {
+    display: none !important;
 }
 
 /* Адаптивність */
+@media (max-width: 1200px) {
+    .main-container {
+        grid-template-columns: 1fr;
+        gap: 1rem;
+    }
+
+    .wiki-sidebar {
+        position: static;
+        order: 2;
+    }
+
+    .content-area {
+        order: 1;
+    }
+
+    .featured-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .footer-content {
+        grid-template-columns: 1fr 1fr;
+    }
+}
+
 @media (max-width: 768px) {
-    .modal-content {
-        width: 95%;
-        margin: 1rem;
-    }
-    
-    .form-actions {
+    .header-container, .nav-container {
         flex-direction: column;
+        gap: 1rem;
+        text-align: center;
     }
-    
-    .user-dropdown {
-        right: -50px;
+
+    .nav-main, .nav-tools {
+        flex-wrap: wrap;
+        justify-content: center;
     }
-    
-    .article-actions {
+
+    .article-info {
+        grid-template-columns: 1fr;
+    }
+
+    .article-meta {
         flex-direction: column;
+        gap: 1rem;
+        align-items: flex-start;
+    }
+
+    .footer-content {
+        grid-template-columns: 1fr;
+    }
+
+    .main-container, .header-container, .nav-container, .search-container, .footer-container {
+        padding: 0 1rem;
     }
 }
 
-/* Анімації */
-@keyframes slideDown {
-    from {
-        opacity: 0;
-        transform: translateY(-10px);
+/* Автоматична тема */
+@media (prefers-color-scheme: dark) {
+    [data-theme="auto"] {
+        --bg-primary: #202122;
+        --bg-secondary: #27292d;
+        --bg-tertiary: #2f3136;
+        --border: #4f545c;
+        --border-light: #5a5f67;
+        --text-primary: #e8e8e8;
+        --text-secondary: #a8a8a8;
+        --text-muted: #8b8b8b;
+        --link: #6699ff;
+        --link-hover: #88aaff;
+        --accent: #4a8eff;
     }
-    to {
-        opacity: 1;
-        transform: translateY(0);
-    }
+}
+/* Стилі для порожніх станів */
+.empty-state {
+    text-align: center;
+    padding: 3rem;
+    color: var(--text-muted);
 }
 
-.user-dropdown.show {
-    animation: slideDown 0.3s ease;
+.empty-state h3 {
+    margin-bottom: 1rem;
+    color: var(--text-secondary);
 }
 
-.modal.show .modal-content {
-    animation: slideDown 0.3s ease;
-}
-/* Додайте ці стилі в style.css */
-.notification {
-    position: fixed;
-    top: 20px;
-    right: 20px;
-    z-index: 3000;
-    animation: slideInRight 0.3s ease;
-}
-
-.notification-content {
-    background: white;
-    border: 1px solid #ddd;
-    border-radius: 4px;
-    padding: 1rem;
-    box-shadow: 0 2px 10px rgba(0,0,0,0.1);
-    display: flex;
-    align-items: center;
-    gap: 1rem;
+.empty-state ol {
+    text-align: left;
+    margin: 1rem auto;
     max-width: 400px;
 }
 
-.notification-success { border-left: 4px solid #28a745; }
-.notification-error { border-left: 4px solid #dc3545; }
-.notification-info { border-left: 4px solid #17a2b8; }
-.notification-warning { border-left: 4px solid #ffc107; }
-
-.notification-close {
-    background: none;
-    border: none;
-    font-size: 1.2rem;
-    cursor: pointer;
-    padding: 0;
-    width: 20px;
-    height: 20px;
+.empty-state li {
+    margin: 0.5rem 0;
 }
 
-@keyframes slideInRight {
-    from { transform: translateX(100%); opacity: 0; }
-    to { transform: translateX(0); opacity: 1; }
+.empty-state pre {
+    background: var(--bg-tertiary);
+    border: 1px solid var(--border-light);
+    border-radius: var(--radius);
+    padding: 1rem;
+    margin: 1rem auto;
+    max-width: 300px;
+    font-size: 0.8rem;
+    text-align: left;
 }
 
-@keyframes slideOutRight {
-    from { transform: translateX(0); opacity: 1; }
-    to { transform: translateX(100%); opacity: 0; }
+.no-results {
+    text-align: center;
+    padding: 3rem;
+    color: var(--text-secondary);
 }
 
-.notification.hiding {
-    animation: slideOutRight 0.3s ease;
+.no-results h3 {
+    color: var(--text-muted);
+    margin-bottom: 1rem;
+}
+
+.error {
+    text-align: center;
+    padding: 3rem;
+    color: var(--text-secondary);
+}
+
+.error h3 {
+    color: #d32f2f;
+    margin-bottom: 1rem;
+}
+
+.loading {
+    text-align: center;
+    padding: 3rem;
+    color: var(--text-muted);
+}
+
+mark {
+    background-color: #fff59d;
+    color: var(--text-primary);
+    padding: 0.1rem 0.2rem;
+    border-radius: 2px;
+}
+
+/* Покращення для темної теми */
+[data-theme="dark"] mark {
+    background-color: #ffeb3b;
+    color: #000;
+}
+
+[data-theme="dark"] .error h3 {
+    color: #f44336;
 }
