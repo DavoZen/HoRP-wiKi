@@ -209,14 +209,17 @@ class HoRPWiki {
 
     searchPages(query) {
         if (this.pages.length === 0) return [];
-        
+    
         const lowerQuery = query.toLowerCase();
+
         return this.pages.filter(page => 
             page.title.toLowerCase().includes(lowerQuery) ||
             page.path.toLowerCase().includes(lowerQuery) ||
-            page.category.toLowerCase().includes(lowerQuery)
+            page.category.toLowerCase().includes(lowerQuery) ||
+            (page.content && page.content.includes(lowerQuery)) // <-- додаємо пошук по тексту
         );
     }
+
 
     displaySearchResults(results, query) {
         const container = document.getElementById('searchResults');
