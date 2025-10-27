@@ -570,6 +570,60 @@ class HoRPWiki {
             alert('Посилання скопійовано в буфер обміну!');
         }
     }
+
+
+    // Проста наукова міні-калькуляторна функція
+    class HoRPCalc {
+        constructor() {
+            this.input = document.getElementById('calcInput');
+            this.btn = document.getElementById('calcBtn');
+            this.result = document.getElementById('calcResult');
+
+            if (this.btn && this.input) {
+                this.btn.addEventListener('click', () => this.calculate());
+                this.input.addEventListener('keypress', e => {
+                    if (e.key === 'Enter') this.calculate();
+                });
+            }
+        }
+
+        calculate() {
+            let expr = this.input.value.trim();
+            if (!expr) return;
+
+            try {
+                // Замінюємо кому на крапку
+                expr = expr.replace(/,/g, '.');
+
+                // Підтримка базових функцій
+                expr = expr
+                    .replace(/\bpi\b/gi, 'Math.PI')
+                    .replace(/\be\b/gi, 'Math.E')
+                    .replace(/\bsin\(/gi, 'Math.sin((')
+                    .replace(/\bcos\(/gi, 'Math.cos((')
+                    .replace(/\btan\(/gi, 'Math.tan((')
+                    .replace(/\bsqrt\(/gi, 'Math.sqrt((')
+                    .replace(/\blog\(/gi, 'Math.log10((')
+                    .replace(/\bln\(/gi, 'Math.log((')
+                    .replace(/\^/g, '**');
+
+                // Виконуємо обчислення без доступу до глобальних об’єктів
+                const result = Function(`"use strict"; return (${expr});`)();
+                if (isNaN(result)) throw new Error('Некоректне значення');
+            
+                this.result.textContent = `= ${result.toFixed(6)}`;
+            } catch (err) {
+                this.result.textContent = 'Помилка: перевірте вираз';
+            }
+        }
+    }
+
+    // ініціалізація калькулятора
+    window.addEventListener('DOMContentLoaded', () => new HoRPCalc());
+
+
+    
+    
 }
 
 // Глобальний екземпляр
