@@ -798,6 +798,41 @@ body {
     display: none !important;
 }
 
+.calc-box {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    padding: 10px;
+    background: var(--bg-secondary);
+    border-radius: 12px;
+    box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+    margin-top: 15px;
+}
+#calcInput {
+    padding: 8px;
+    font-size: 16px;
+    border-radius: 8px;
+    border: 1px solid var(--border);
+    outline: none;
+}
+#calcBtn {
+    padding: 8px;
+    font-size: 18px;
+    font-weight: bold;
+    border: none;
+    border-radius: 8px;
+    background: var(--bg-tertiary);
+    cursor: pointer;
+    transition: 0.2s;
+}
+#calcBtn:hover { background: var(--border-light); }
+#calcResult {
+    font-family: monospace;
+    font-size: 16px;
+    padding: 6px;
+}
+
+
 /* Адаптивність */
 @media (max-width: 1200px) {
     .main-container {
