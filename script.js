@@ -11,14 +11,14 @@ class HoRPWiki {
     }
 
     async init() {
-        console.log('🏁 Ініціалізація HoRP-wiKi...');
+        console.log('Ініціалізація HoRP-wiKi...');
         
         this.setupTheme();
         this.setupEventListeners();
         await this.loadData();
         this.updateUI();
         
-        console.log(' HoRP-wiKi готовий до роботи');
+        console.log('HoRP-wiKi готовий до роботи');
     }
 
     setupTheme() {
@@ -43,7 +43,7 @@ class HoRPWiki {
         document.querySelectorAll('.nav-item[data-section]').forEach(item => {
             item.addEventListener('click', (e) => {
                 e.preventDefault();
-                this.showSection(item.dataset.section);
+                this.showSection(item.dataset.section]);
                 
                 document.querySelectorAll('.nav-item').forEach(nav => nav.classList.remove('active'));
                 item.classList.add('active');
@@ -60,12 +60,12 @@ class HoRPWiki {
 
     // Завантаження даних з GitHub
     async loadData() {
-        console.log(' Завантаження даних з GitHub...');
+        console.log('Завантаження даних з GitHub...');
         
         try {
             // Спроба завантажити з кешу
             if (this.loadFromCache()) {
-                console.log(' Дані завантажено з кешу');
+                console.log('Дані завантажено з кешу');
                 return;
             }
 
@@ -74,25 +74,25 @@ class HoRPWiki {
             this.cacheData();
             
         } catch (error) {
-            console.error(' Помилка завантаження:', error);
+            console.error('Помилка завантаження:', error);
             this.showError('Не вдалося завантажити дані з GitHub. Перевірте підключення до інтернету.');
         }
     }
 
     async scanRepository() {
-        console.log('🔍 Сканування репозиторію...');
+        console.log('Сканування репозиторію...');
         
         try {
             const contents = await this.fetchGitHubContents('pages');
             this.pages = await this.buildPagesList(contents, 'pages');
-            console.log(` Знайдено ${this.pages.length} сторінок`);
+            console.log(`Знайдено ${this.pages.length} сторінок`);
             
         } catch (error) {
-            console.error(' Помилка сканування:', error);
+            console.error('Помилка сканування:', error);
             
             // Якщо папка pages не існує, спробуємо знайти .md файли в корені
             try {
-                console.log(' Спроба знайти файли в корені репозиторію...');
+                console.log('Спроба знайти файли в корені репозиторію...');
                 const rootContents = await this.fetchGitHubContents('');
                 const mdFiles = rootContents.filter(item => 
                     item.type === 'file' && item.name.endsWith('.md') && item.name !== 'README.md'
@@ -105,10 +105,10 @@ class HoRPWiki {
                     category: 'Основне'
                 }));
                 
-                console.log(` Знайдено ${this.pages.length} .md файлів у корені`);
+                console.log(`Знайдено ${this.pages.length} .md файлів у корені`);
                 
             } catch (rootError) {
-                console.error(' Помилка пошуку в корені:', rootError);
+                console.error('Помилка пошуку в корені:', rootError);
                 throw new Error('Не вдалося знайти жодної сторінки у репозиторії');
             }
         }
@@ -138,7 +138,7 @@ class HoRPWiki {
                     const subPages = await this.buildPagesList(subContents, item.path);
                     pages.push(...subPages);
                 } catch (error) {
-                    console.error(` Помилка завантаження папки ${item.path}:`, error);
+                    console.error(`Помилка завантаження папки ${item.path}:`, error);
                 }
             } else if (item.type === 'file' && item.name.endsWith('.md')) {
                 // Додаємо Markdown файл
@@ -167,7 +167,7 @@ class HoRPWiki {
             timestamp: Date.now()
         };
         localStorage.setItem('wikiCache', JSON.stringify(cache));
-        console.log(' Дані збережено в кеш');
+        console.log('Дані збережено в кеш');
     }
 
     loadFromCache() {
@@ -181,7 +181,7 @@ class HoRPWiki {
                     return true;
                 }
             } catch (error) {
-                console.error(' Помилка завантаження кешу:', error);
+                console.error('Помилка завантаження кешу:', error);
             }
         }
         return false;
@@ -215,11 +215,9 @@ class HoRPWiki {
         return this.pages.filter(page => 
             page.title.toLowerCase().includes(lowerQuery) ||
             page.path.toLowerCase().includes(lowerQuery) ||
-            page.category.toLowerCase().includes(lowerQuery) ||
-            (page.content && page.content.includes(lowerQuery)) // <-- додаємо пошук по тексту
+            page.category.toLowerCase().includes(lowerQuery)
         );
     }
-
 
     displaySearchResults(results, query) {
         const container = document.getElementById('searchResults');
@@ -379,7 +377,22 @@ class HoRPWiki {
     }
 
     showCategory(categoryName) {
+        const categoryPages = this.pages.filter(page => page.category === categoryName);
+        
+        // Показати сторінку статей з фільтром по категорії
         this.showSection('articles');
+        
+        const container = document.getElementById('articlesList');
+        const count = document.getElementById('articlesCount');
+        
+        count.textContent = `${categoryPages.length} статей у категорії "${categoryName}"`;
+        container.innerHTML = categoryPages.map(page => `
+            <div class="article-card" onclick="wiki.loadPage('${page.path}')">
+                <h3>${page.title}</h3>
+                <div class="article-path">${page.path}</div>
+                <div class="article-category">Категорія: ${page.category}</div>
+            </div>
+        `).join('');
     }
 
     // Завантаження статті
@@ -394,7 +407,7 @@ class HoRPWiki {
         }
 
         try {
-            console.log(` Завантаження: ${page.url}`);
+            console.log(`Завантаження: ${page.url}`);
             const response = await fetch(page.url);
             
             if (!response.ok) {
@@ -405,7 +418,7 @@ class HoRPWiki {
             this.displayArticle(page, content);
             
         } catch (error) {
-            console.error(' Помилка завантаження статті:', error);
+            console.error('Помилка завантаження статті:', error);
             this.showError('Помилка завантаження статті', 'articleContent');
         }
     }
@@ -442,28 +455,28 @@ class HoRPWiki {
     }
 
     convertMarkdownToHtml(markdown) {
-    return markdown
-        .replace(/^### (.*$)/gim, '<h3>$1</h3>')
-        .replace(/^## (.*$)/gim, '<h2>$1</h2>')
-        .replace(/^# (.*$)/gim, '<h1>$1</h1>')
-        .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
-        .replace(/\*(.*?)\*/g, '<em>$1</em>')
-        .replace(/`(.*?)`/g, '<code>$1</code>')
-        .replace(/```(\w+)?\n([\s\S]*?)```/g, '<pre><code>$2</code></pre>')
-        .replace(/!\[(.*?)\]\((.*?)\)/g, (match, alt, src) => {
-            // Якщо GitHub blob, конвертуємо у raw
-            if (src.includes('github.com')) {
-                src = src.replace('github.com', 'raw.githubusercontent.com')
-                         .replace('/blob/', '/');
-            } else if (!src.startsWith('http')) {
-                // Відносний шлях до pages
-                src = `${this.baseUrl}/pages/${src}`;
-            }
-            return `<img src="${src}" alt="${alt}" loading="lazy">`;
-        })
-        .replace(/\[(.*?)\]\((.*?)\)/g, '<a href="$2" target="_blank">$1</a>')
-        .replace(/\n\n/g, '</p><p>')
-        .replace(/\n/g, '<br>');
+        return markdown
+            .replace(/^### (.*$)/gim, '<h3>$1</h3>')
+            .replace(/^## (.*$)/gim, '<h2>$1</h2>')
+            .replace(/^# (.*$)/gim, '<h1>$1</h1>')
+            .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
+            .replace(/\*(.*?)\*/g, '<em>$1</em>')
+            .replace(/`(.*?)`/g, '<code>$1</code>')
+            .replace(/```(\w+)?\n([\s\S]*?)```/g, '<pre><code>$2</code></pre>')
+            .replace(/!\[(.*?)\]\((.*?)\)/g, (match, alt, src) => {
+                // Якщо GitHub blob, конвертуємо у raw
+                if (src.includes('github.com')) {
+                    src = src.replace('github.com', 'raw.githubusercontent.com')
+                             .replace('/blob/', '/');
+                } else if (!src.startsWith('http')) {
+                    // Відносний шлях до pages
+                    src = `${this.baseUrl}/pages/${src}`;
+                }
+                return `<img src="${src}" alt="${alt}" loading="lazy">`;
+            })
+            .replace(/\[(.*?)\]\((.*?)\)/g, '<a href="$2" target="_blank">$1</a>')
+            .replace(/\n\n/g, '</p><p>')
+            .replace(/\n/g, '<br>');
     }
 
     updateArticleInfo(page) {
