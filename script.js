@@ -1,6 +1,6 @@
 class HoRPWiki {
     constructor() {
-        this.repoOwner = 'pisdukblaty';
+        this.repoOwner = 'DavoZen';
         this.repoName = 'HoRP-wiKi';
         this.branch = 'main';
         this.baseUrl = `https://raw.githubusercontent.com/${this.repoOwner}/${this.repoName}/${this.branch}`;
