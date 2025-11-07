@@ -5,7 +5,10 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>HoRP-wiKi - Вільна енциклопедія</title>
     <link rel="stylesheet" href="style.css">
-    <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🌐</text></svg>">
+    <!-- Custom SVG favicon instead of emoji -->
+    <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Cdefs%3E%3ClinearGradient id='g' x1='0' x2='1' y1='0' y2='1'%3E%3Cstop offset='0' stop-color='%233b82f6'/%3E%3Cstop offset='1' stop-color='%23a855f7'/%3E%3C/linearGradient%3E%3C/defs%3E%3Crect x='6' y='10' width='52' height='44' rx='6' ry='6' fill='%23102233' stroke='url(%23g)' stroke-width='2'/%3E%3Cpath d='M14 18h36M14 26h22M14 34h18M14 42h10' stroke='%23e5e7eb' stroke-width='2' stroke-linecap='round'/%3E%3C/svg%3E">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/themes/prism.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/themes/prism-tomorrow.min.css">
 </head>
 <body>
     <div class="page-wrapper">
@@ -22,11 +25,20 @@
                 
                 <div class="header-controls">
                     <div class="theme-switcher">
-                        <button class="theme-btn active" data-theme="light">✨</button>
-                        <button class="theme-btn" data-theme="dark">🌙</button>
-                        <button class="theme-btn" data-theme="warm">🔥</button>
+                        <button class="theme-btn active" data-theme="light">
+                            <span class="icon icon-sun"></span>
+                        </button>
+                        <button class="theme-btn" data-theme="dark">
+                            <span class="icon icon-moon"></span>
+                        </button>
+                        <button class="theme-btn" data-theme="warm">
+                            <span class="icon icon-fire"></span>
+                        </button>
                     </div>
                     <div class="user-menu">
+                        <button class="user-settings-btn" id="openSettingsBtn" title="Налаштування вигляду">
+                            <span class="icon icon-settings"></span>
+                        </button>
                     </div>
                 </div>
             </div>
@@ -39,7 +51,7 @@
                     <a href="#" class="nav-item active" data-section="main">Головна</a>
                     <a href="#" class="nav-item" data-section="articles">Статті</a>
                     <a href="#" class="nav-item" data-section="categories">Категорії</a>
-                    <a href="#" class="nav-item" data-section="random">Випадкова</a>
+                    <a href="#" class="nav-item" onclick="showRandomPage()">Випадкова</a>
                 </div>
                 <div class="nav-tools">
                     <a href="https://github.com/pisdukblaty/HoRP-wiKi" class="nav-item" target="_blank">Редагувати</a>
@@ -239,5 +251,10 @@
     </div>
 
     <script src="script.js"></script>
+    <!-- Prism below script.js so highlightAll runs correctly -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/prism.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-javascript.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-python.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-lua.min.js"></script>
 </body>
 </html>
