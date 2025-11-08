@@ -1142,19 +1142,21 @@ class HoRPWiki {
         let html = '';
 
         Object.entries(tree).forEach(([key, item]) => {
-            const indent = '  '.repeat(level);
             const isExpanded = level < 2; // Auto-expand first two levels
 
             if (item.type === 'folder') {
+                const childrenTree = item.children || {};
+                const childrenCount = Object.keys(childrenTree).length;
+
                 html += `
                     <div class="tree-folder ${isExpanded ? 'expanded' : ''}" data-path="${item.path}">
                         <div class="tree-item folder-item" onclick="wiki.toggleFolder('${item.path}')">
                             <span class="tree-icon tree-icon-folder"></span>
                             <span class="tree-label">${key}</span>
-                            <span class="tree-count">(${Object.keys(item.children).length})</span>
+                            <span class="tree-count">(${childrenCount})</span>
                         </div>
                         <div class="tree-children ${isExpanded ? '' : 'collapsed'}">
-                            ${this.renderTree(item.children, level + 1)}
+                            ${this.renderTree(childrenTree, level + 1)}
                         </div>
                     </div>
                 `;
