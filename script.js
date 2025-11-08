@@ -256,7 +256,14 @@ class HoRPWiki {
                 const cache = JSON.parse(cached);
                 // Перевірка актуальності кешу (12 годин)
                 if (Date.now() - cache.timestamp < 12 * 60 * 60 * 1000) {
-                    this.pages = cache.pages;
+                    // Додаткова нормалізація структури для сумісності з новою buildFolderTree()
+                    this.pages = (cache.pages || []).map(p => ({
+                        ...p,
+                        path: String(p.path || '').trim(),
+                        title: p.title || (p.path ? String(p.path).split('/').pop() : 'Untitled'),
+                        category: p.category || this.getCategoryFromPath(p.path || '')
+                    })).filter(p => p.path);
+
                     return true;
                 }
             } catch (error) {
