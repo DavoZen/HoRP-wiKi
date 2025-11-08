@@ -32,6 +32,9 @@ class HoRPWiki {
         await this.loadData();
         this.updateUI();
 
+        // Обробка прямого посилання ?page=... після того, як дані завантажені
+        this.handleInitialRoute();
+
         console.log('HoRP-wiKi готовий до роботи');
     }
 
@@ -328,6 +331,45 @@ class HoRPWiki {
             }
         }
         return false;
+    }
+
+    // =============================
+    // Routing: прямі посилання на статті
+    // =============================
+
+    getPageFromUrl() {
+        const url = new URL(window.location.href);
+        const pageParam = url.searchParams.get('page');
+        if (!pageParam) return null;
+
+        // pageParam зберігаємо як path без .md
+        const clean = pageParam.replace(/^\//, '').replace(/\.md$/i, '');
+        return clean || null;
+    }
+
+    handleInitialRoute() {
+        const path = this.getPageFromUrl();
+        if (!path) return;
+
+        const page = this.pages.find(p => p.path === path);
+        if (!page) return;
+
+        // Показуємо конкретну статтю замість головної
+        this.loadPage(path);
+    }
+
+    updateUrlForPage(page) {
+        if (!page || !page.path) return;
+
+        const url = new URL(window.location.href);
+        url.searchParams.set('page', page.path);
+        // Оновлюємо URL без перезавантаження
+        window.history.pushState({ pagePath: page.path }, page.title, url.toString());
+
+        // Також оновлюємо title вкладки браузера
+        if (page.title) {
+            document.title = `HoRP-wiKi - ${page.title}`;
+        }
     }
 
     // =============================
@@ -1042,8 +1084,10 @@ class HoRPWiki {
 
         // 2) Заголовок: пріоритет title з front matter
         const finalTitle = fm.title || page.title;
+        const pageWithMeta = { ...page, ...fm, title: finalTitle };
+
         document.getElementById('articleTitle').textContent = finalTitle;
-        this.updateBreadcrumbs({ ...page, title: finalTitle });
+        this.updateBreadcrumbs(pageWithMeta);
 
         // 3) Дата: з created або з front matter, якщо є
         const created = fm.created || page.created;
@@ -1060,7 +1104,10 @@ class HoRPWiki {
         const htmlBody = this.convertMarkdownToHtml(cleanContent);
         document.getElementById('articleContent').innerHTML = htmlMeta + htmlBody;
 
-        this.updateArticleInfo({ ...page, ...fm, title: finalTitle });
+        this.updateArticleInfo(pageWithMeta);
+
+        // 5) Оновлюємо URL, щоб його можна було копіювати і відкривати напряму
+        this.updateUrlForPage(pageWithMeta);
 
         // Apply syntax highlighting after content is loaded
         setTimeout(() => {
