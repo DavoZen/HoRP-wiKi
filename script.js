@@ -1221,7 +1221,9 @@ class HoRPWiki {
         });
     }
 
+    // ================================
     // Додаткові функції
+    // ================================
     editArticle() {
         const currentTitle = document.getElementById('articleTitle').textContent;
         const currentPage = this.pages.find(p => p.title === currentTitle);
