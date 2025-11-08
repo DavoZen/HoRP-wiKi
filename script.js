@@ -1036,15 +1036,31 @@ class HoRPWiki {
     }
 
     displayArticle(page, content) {
-        document.getElementById('articleTitle').textContent = page.title;
-        this.updateBreadcrumbs(page);
+        // 1) Парсимо front matter (якщо є)
+        const fm = this.parseFrontMatter(content);
+        const cleanContent = this.stripFrontMatter(content);
 
-        document.getElementById('articleModified').textContent = `Востаннє редагувалося: ${new Date().toLocaleDateString('uk-UA')}`;
+        // 2) Заголовок: пріоритет title з front matter
+        const finalTitle = fm.title || page.title;
+        document.getElementById('articleTitle').textContent = finalTitle;
+        this.updateBreadcrumbs({ ...page, title: finalTitle });
 
-        const htmlContent = this.convertMarkdownToHtml(content);
-        document.getElementById('articleContent').innerHTML = htmlContent;
+        // 3) Дата: з created або з front matter, якщо є
+        const created = fm.created || page.created;
+        if (created) {
+            document.getElementById('articleModified').textContent =
+                `Створено / оновлено: ${new Date(created).toLocaleDateString('uk-UA')}`;
+        } else {
+            document.getElementById('articleModified').textContent =
+                `Створено / оновлено: ${new Date().toLocaleDateString('uk-UA')}`;
+        }
 
-        this.updateArticleInfo(page);
+        // 4) Гарна табличка з meta + сам текст
+        const htmlMeta = this.renderFrontMatterMeta(fm);
+        const htmlBody = this.convertMarkdownToHtml(cleanContent);
+        document.getElementById('articleContent').innerHTML = htmlMeta + htmlBody;
+
+        this.updateArticleInfo({ ...page, ...fm, title: finalTitle });
 
         // Apply syntax highlighting after content is loaded
         setTimeout(() => {
@@ -1071,6 +1087,40 @@ class HoRPWiki {
         });
 
         document.getElementById('breadcrumbs').innerHTML = breadcrumbs;
+    }
+
+    stripFrontMatter(raw) {
+        if (!raw.startsWith('---')) return raw;
+        const end = raw.indexOf('\n---', 3);
+        if (end === -1) return raw;
+        return raw.slice(end + 4); // пропускаємо "\n---"
+    }
+
+    renderFrontMatterMeta(meta) {
+        if (!meta || Object.keys(meta).length === 0) return '';
+
+        const rows = [];
+
+        if (meta.title)  rows.push(`<tr><th>Заголовок</th><td>${this.escapeHtml(meta.title)}</td></tr>`);
+        if (meta.author) rows.push(`<tr><th>Автор</th><td>${this.escapeHtml(meta.author)}</td></tr>`);
+        if (meta.email)  rows.push(`<tr><th>Email</th><td>${this.escapeHtml(meta.email)}</td></tr>`);
+        if (meta.created) rows.push(`<tr><th>Створено</th><td>${this.escapeHtml(meta.created)}</td></tr>`);
+        if (meta.tags && Array.isArray(meta.tags) && meta.tags.length) {
+            rows.push(`<tr><th>Теги</th><td>${meta.tags.map(t => this.escapeHtml(t)).join(', ')}</td></tr>`);
+        }
+        if (meta.summary) rows.push(`<tr><th>Опис</th><td>${this.escapeHtml(meta.summary)}</td></tr>`);
+
+        if (!rows.length) return '';
+
+        return `
+<div class="article-meta-table">
+    <table>
+        <tbody>
+            ${rows.join('')}
+        </tbody>
+    </table>
+</div>
+`;
     }
 
     convertMarkdownToHtml(markdown) {
