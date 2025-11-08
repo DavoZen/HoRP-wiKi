@@ -1123,20 +1123,35 @@ class HoRPWiki {
         const tree = {};
 
         this.pages.forEach(page => {
-            const parts = page.path.split('/');
+            // Захист від некоректних записів у кеші
+            if (!page || !page.path || typeof page.path !== 'string') return;
+
+            const parts = page.path.split('/').filter(Boolean);
+            if (parts.length === 0) return;
+
             let current = tree;
 
             parts.forEach((part, index) => {
+                // Якщо вузол не існує — створюємо
                 if (!current[part]) {
+                    const isFile = index === parts.length - 1;
                     current[part] = {
-                        type: index === parts.length - 1 ? 'file' : 'folder',
+                        type: isFile ? 'file' : 'folder',
                         path: parts.slice(0, index + 1).join('/'),
-                        title: index === parts.length - 1 ? page.title : part,
-                        children: index === parts.length - 1 ? null : {}
+                        title: isFile ? (page.title || part) : part,
+                        // ВАЖЛИВО: для файлів не зберігаємо children зовсім,
+                        // щоб не ламати Object.keys(...) на null / "fff" з застарілого кешу
+                        ...(isFile ? {} : { children: {} })
                     };
                 }
 
+                // Рухаємось вглиб тільки для тек
                 if (index < parts.length - 1) {
+                    // Якщо з якогось старого кешу children був зіпсований (null / рядок / "fff") —
+                    // примусово замінюємо на порожній об'єкт
+                    if (!current[part].children || typeof current[part].children !== 'object') {
+                        current[part].children = {};
+                    }
                     current = current[part].children;
                 }
             });
