@@ -1017,31 +1017,116 @@ class HoRPWiki {
     }
 
     convertMarkdownToHtml(markdown) {
-        return markdown
-            .replace(/^### (.*$)/gim, '<h3>$1</h3>')
-            .replace(/^## (.*$)/gim, '<h2>$1</h2>')
-            .replace(/^# (.*$)/gim, '<h1>$1</h1>')
+        // Базові markdown-правила + підтримка таблиць, лінків та YouTube
+        let html = markdown;
+
+        // Багаторядкові код-блоки ```lang
+        html = html.replace(/```(\w+)?\n([\s\S]*?)```/g, (match, lang, code) => {
+            const language = lang ? ` class="language-${lang}"` : '';
+            return `<pre><code${language}>${code.trim()}</code></pre>`;
+        });
+
+        // Заголовки
+        html = html
+            .replace(/^### (.*)$/gim, '<h3>$1</h3>')
+            .replace(/^## (.*)$/gim, '<h2>$1</h2>')
+            .replace(/^# (.*)$/gim, '<h1>$1</h1>');
+
+        // Жирний / курсив / інлайн-код
+        html = html
             .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
             .replace(/\*(.*?)\*/g, '<em>$1</em>')
-            .replace(/`(.*?)`/g, '<code>$1</code>')
-            .replace(/```(\w+)?\n([\s\S]*?)```/g, (match, lang, code) => {
-                const language = lang ? ` class="language-${lang}"` : '';
-                return `<pre><code${language}>${code.trim()}</code></pre>`;
-            })
-            .replace(/!\[(.*?)\]\((.*?)\)/g, (match, alt, src) => {
-                // Якщо GitHub blob, конвертуємо у raw
-                if (src.includes('github.com')) {
-                    src = src.replace('github.com', 'raw.githubusercontent.com')
-                              .replace('/blob/', '/');
-                } else if (!src.startsWith('http')) {
-                    // Відносний шлях до pages
-                    src = `${this.baseUrl}/pages/${src}`;
+            .replace(/`([^`]+)`/g, '<code>$1</code>');
+
+        // Зображення: ![alt](src)
+        html = html.replace(/!\[(.*?)\]\((.*?)\)/g, (match, alt, src) => {
+            let finalSrc = src;
+            if (finalSrc.includes('github.com')) {
+                finalSrc = finalSrc
+                    .replace('github.com', 'raw.githubusercontent.com')
+                    .replace('/blob/', '/');
+            } else if (!finalSrc.startsWith('http')) {
+                finalSrc = `${this.baseUrl}/pages/${finalSrc}`;
+            }
+            return `<img src="${finalSrc}" alt="${alt}" loading="lazy">`;
+        });
+
+        // YouTube-посилання: перетворюємо окремий рядок з посиланням на вбудований плеєр
+        html = html.replace(
+            /^(https?:\/\/(?:www\.)?(?:youtube\.com\/watch\?v=|youtu\.be\/)([A-Za-z0-9_\-]{6,}))[ \t]*$/gim,
+            (match, url, id) => {
+                const videoId = (url.match(/v=([^&]+)/) || [null, id])[1];
+                return `
+<div class="youtube-embed">
+    <iframe src="https://www.youtube.com/embed/${videoId}"
+            loading="lazy"
+            frameborder="0"
+            allowfullscreen></iframe>
+</div>`;
+            }
+        );
+
+        // Markdown-посилання [text](url) — відкривати в новій вкладці
+        html = html.replace(/\[([^\]]+)\]\((https?:\/\/[^\s)]+)\)/g, '<a href="$2" target="_blank" rel="noopener noreferrer">$1</a>');
+
+        // Голо-URL (http/https), які не в markdown-синтаксисі — робимо клікабельними
+        html = html.replace(/(^|[\s(])((https?:\/\/[^\s)<]+))/g, '$1<a href="$2" target="_blank" rel="noopener noreferrer">$2</a>');
+
+        // Простенька підтримка markdown-таблиць:
+        // Блоку рядків, що містять | і виглядають як таблиця, конвертуємо в <table>
+        html = html.replace(
+            /((?:^\s*\|.*\|\s*$\r?\n?){2,})/gm,
+            (block) => {
+                const lines = block
+                    .trim()
+                    .split(/\r?\n/)
+                    .map(l => l.trim())
+                    .filter(l => l.startsWith('|') && l.endsWith('|'));
+
+                if (lines.length < 2) return block; // недостатньо для таблиці
+
+                const header = lines[0];
+                const separator = lines[1];
+
+                // Перевірка, що друга лінія схожа на --- | --- (роздільник)
+                if (!/^\|?(\s*:?-{3,}:?\s*\|)+\s*$/.test(separator)) {
+                    return block; // не валідна таблиця — не чіпаємо
                 }
-                return `<img src="${src}" alt="${alt}" loading="lazy">`;
-            })
-            .replace(/\[(.*?)\]\((.*?)\)/g, '<a href="$2" target="_blank">$1</a>')
-            .replace(/\n\n/g, '</p><p>')
+
+                const bodyLines = lines.slice(2);
+
+                const toCells = (row) =>
+                    row
+                        .slice(1, -1)
+                        .split('|')
+                        .map(c => c.trim());
+
+                const headerCells = toCells(header);
+                const thead = `<thead><tr>${headerCells.map(c => `<th>${c}</th>`).join('')}</tr></thead>`;
+
+                const tbodyRows = bodyLines
+                    .map(r => {
+                        const cells = toCells(r);
+                        return `<tr>${cells.map(c => `<td>${c}</td>`).join('')}</tr>`;
+                    })
+                    .join('');
+
+                return `<table>${thead}<tbody>${tbodyRows}</tbody></table>`;
+            }
+        );
+
+        // Абзаци / переноси
+        html = html
+            .replace(/\r/g, '')
+            .replace(/\n{2,}/g, '</p><p>')
             .replace(/\n/g, '<br>');
+
+        // Обгортаємо у <p>, якщо ще не починається з блочного елемента
+        if (!/^<(h\d|table|ul|ol|pre|blockquote|img|div)/i.test(html.trim())) {
+            html = `<p>${html}</p>`;
+        }
+
+        return html;
     }
 
     updateArticleInfo(page) {
