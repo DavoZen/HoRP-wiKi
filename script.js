@@ -220,18 +220,75 @@ class HoRPWiki {
                     console.error(`Помилка завантаження папки ${item.path}:`, error);
                 }
             } else if (item.type === 'file' && item.name.endsWith('.md')) {
-                // Додаємо Markdown файл
+                // Додаємо Markdown файл з підтримкою YAML front matter
                 const pagePath = item.path.replace('pages/', '').replace('.md', '');
+
+                let meta = {};
+                try {
+                    const res = await fetch(item.download_url);
+                    if (res.ok) {
+                        const raw = await res.text();
+                        meta = this.parseFrontMatter(raw);
+                    }
+                } catch (e) {
+                    console.warn('Не вдалося завантажити front matter для', item.path, e);
+                }
+
                 pages.push({
-                    title: item.name.replace('.md', ''),
+                    title: meta.title || item.name.replace('.md', ''),
                     path: pagePath,
                     url: item.download_url,
-                    category: this.getCategoryFromPath(pagePath)
+                    category: meta.category || this.getCategoryFromPath(pagePath),
+                    summary: meta.summary || '',
+                    tags: Array.isArray(meta.tags) ? meta.tags : [],
+                    author: meta.author || '',
+                    created: meta.created || ''
                 });
             }
         }
 
         return pages;
+    }
+
+    /**
+     * Парсер YAML front matter формату:
+     * ---
+     * key: value
+     * key2: value
+     * ---
+     */
+    parseFrontMatter(raw) {
+        if (!raw.startsWith('---')) return {};
+
+        const end = raw.indexOf('\n---', 3);
+        if (end === -1) return {};
+
+        const block = raw.slice(3, end).trim();
+        const lines = block.split(/\r?\n/);
+        const meta = {};
+
+        for (const line of lines) {
+            const m = line.match(/^([^:]+):\s*(.*)$/);
+            if (!m) continue;
+            const key = m[1].trim();
+            let value = m[2].trim();
+
+            // Порожні масиви: []
+            if (value === '[]') {
+                meta[key] = [];
+                continue;
+            }
+
+            // Рядки в лапках
+            if ((value.startsWith('"') && value.endsWith('"')) ||
+                (value.startsWith("'") && value.endsWith("'"))) {
+                value = value.slice(1, -1);
+            }
+
+            meta[key] = value;
+        }
+
+        return meta;
     }
 
     getCategoryFromPath(path) {
