@@ -109,7 +109,7 @@ def fibonacci(n):
 - Автоматичне перетворення URL: https://example.com
 
 ### Зображення
-![Логотип GitHub](https://www.flaticon.com/ru/free-icon/github-logo_25231)
+![Логотип GitHub]([https://www.flaticon.com/ru/free-icon/github-logo_25231](https://github.com/sjvasquez/handwriting-synthesis/blob/master/img/banner.svg))
 
 ## 8. Таблиці
 
