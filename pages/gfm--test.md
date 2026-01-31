@@ -109,7 +109,7 @@ def fibonacci(n):
 - Автоматичне перетворення URL: https://example.com
 
 ### Зображення
-![Логотип GitHub](https://github.githubassets.com/images/modules/site/github-logo.png)
+![Логотип GitHub](https://www.flaticon.com/ru/free-icon/github-logo_25231)
 
 ## 8. Таблиці
 
@@ -161,6 +161,8 @@ def fibonacci(n):
 ## 14. YouTube відео
 
 https://www.youtube.com/watch?v=dQw4w9WgXcQ
+
+https://colorscheme.ru/html-colors.html
 
 ## Підсумок
 
