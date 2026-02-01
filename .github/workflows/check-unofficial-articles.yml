@@ -1,0 +1,52 @@
+name: Check unofficial articles
+
+on:
+  pull_request:
+    types: [opened, synchronize, reopened]
+
+jobs:
+  check-files:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Validate uploaded articles
+        run: |
+          MAX_SIZE=2097152
+          INVALID=0
+
+          # Отримати список змінених файлів у PR
+          git fetch origin main
+          FILES=$(git diff --name-only origin/main)
+
+          for file in $FILES; do
+            # Перевірка шляху
+            if [[ "$file" != pages/Неофіційний-Контент/* ]]; then
+              echo "Invalid path: $file"
+              INVALID=1
+            fi
+
+            # Перевірка розміру
+            if [[ -f "$file" ]]; then
+              SIZE=$(stat -c%s "$file")
+              if [ "$SIZE" -gt "$MAX_SIZE" ]; then
+                echo "File too large (>2MB): $file"
+                INVALID=1
+              fi
+            fi
+
+            # Перевірка формату
+            if [[ "$file" != *.md ]]; then
+              echo "Invalid format: $file"
+              INVALID=1
+            fi
+          done
+
+          if [ "$INVALID" -eq 1 ]; then
+            echo "Pull request validation failed"
+            exit 1
+          fi
+
+          echo "All checks passed"
